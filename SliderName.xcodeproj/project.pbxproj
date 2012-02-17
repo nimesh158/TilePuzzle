@@ -15,6 +15,10 @@
 		11057DC114EE00D50083B4C0 /* DNAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 11057DC014EE00D50083B4C0 /* DNAppDelegate.m */; };
 		11057DC414EE00D50083B4C0 /* DNViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 11057DC314EE00D50083B4C0 /* DNViewController.m */; };
 		11057DC714EE00D50083B4C0 /* DNViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 11057DC514EE00D50083B4C0 /* DNViewController.xib */; };
+		11057DD514EE045B0083B4C0 /* Globe.png in Resources */ = {isa = PBXBuildFile; fileRef = 11057DD414EE045B0083B4C0 /* Globe.png */; };
+		11057DDD14EE22870083B4C0 /* TileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 11057DDC14EE22870083B4C0 /* TileView.m */; };
+		11057DE114EE2B600083B4C0 /* TileModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 11057DE014EE2B600083B4C0 /* TileModel.m */; };
+		11057DE414EE36B90083B4C0 /* NSArray+Shuffle.m in Sources */ = {isa = PBXBuildFile; fileRef = 11057DE314EE36B80083B4C0 /* NSArray+Shuffle.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,15 +26,22 @@
 		11057DB014EE00D50083B4C0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		11057DB214EE00D50083B4C0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		11057DB414EE00D50083B4C0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		11057DB814EE00D50083B4C0 /* SliderName-Info.plist */ = {isa = PBXFileReference; path = "SliderName-Info.plist"; sourceTree = "<group>"; };
+		11057DB814EE00D50083B4C0 /* SliderName-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SliderName-Info.plist"; sourceTree = "<group>"; };
 		11057DBA14EE00D50083B4C0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		11057DBC14EE00D50083B4C0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		11057DBE14EE00D50083B4C0 /* SliderName-Prefix.pch */ = {isa = PBXFileReference; path = "SliderName-Prefix.pch"; sourceTree = "<group>"; };
-		11057DBF14EE00D50083B4C0 /* DNAppDelegate.h */ = {isa = PBXFileReference; path = DNAppDelegate.h; sourceTree = "<group>"; };
+		11057DBE14EE00D50083B4C0 /* SliderName-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SliderName-Prefix.pch"; sourceTree = "<group>"; };
+		11057DBF14EE00D50083B4C0 /* DNAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DNAppDelegate.h; sourceTree = "<group>"; };
 		11057DC014EE00D50083B4C0 /* DNAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DNAppDelegate.m; sourceTree = "<group>"; };
-		11057DC214EE00D50083B4C0 /* DNViewController.h */ = {isa = PBXFileReference; path = DNViewController.h; sourceTree = "<group>"; };
+		11057DC214EE00D50083B4C0 /* DNViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DNViewController.h; sourceTree = "<group>"; };
 		11057DC314EE00D50083B4C0 /* DNViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DNViewController.m; sourceTree = "<group>"; };
 		11057DC614EE00D50083B4C0 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DNViewController.xib; sourceTree = "<group>"; };
+		11057DD414EE045B0083B4C0 /* Globe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Globe.png; sourceTree = "<group>"; };
+		11057DDB14EE22870083B4C0 /* TileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TileView.h; sourceTree = "<group>"; };
+		11057DDC14EE22870083B4C0 /* TileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TileView.m; sourceTree = "<group>"; };
+		11057DDF14EE2B600083B4C0 /* TileModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TileModel.h; sourceTree = "<group>"; };
+		11057DE014EE2B600083B4C0 /* TileModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TileModel.m; sourceTree = "<group>"; };
+		11057DE214EE36B80083B4C0 /* NSArray+Shuffle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Shuffle.h"; sourceTree = "<group>"; };
+		11057DE314EE36B80083B4C0 /* NSArray+Shuffle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Shuffle.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,11 +88,11 @@
 		11057DB614EE00D50083B4C0 /* SliderName */ = {
 			isa = PBXGroup;
 			children = (
-				11057DBF14EE00D50083B4C0 /* DNAppDelegate.h */,
-				11057DC014EE00D50083B4C0 /* DNAppDelegate.m */,
-				11057DC214EE00D50083B4C0 /* DNViewController.h */,
-				11057DC314EE00D50083B4C0 /* DNViewController.m */,
-				11057DC514EE00D50083B4C0 /* DNViewController.xib */,
+				11057DD214EE02B80083B4C0 /* App Delegate */,
+				11057DD314EE02C60083B4C0 /* Root View Controller */,
+				11057DDE14EE286D0083B4C0 /* Tile Model */,
+				11057DDA14EE22640083B4C0 /* Tile View */,
+				11057DCD14EE02740083B4C0 /* Resources */,
 				11057DB714EE00D50083B4C0 /* Supporting Files */,
 			);
 			path = SliderName;
@@ -96,6 +107,69 @@
 				11057DBE14EE00D50083B4C0 /* SliderName-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		11057DCD14EE02740083B4C0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				11057DCF14EE028A0083B4C0 /* images */,
+				11057DCE14EE027C0083B4C0 /* nibs */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		11057DCE14EE027C0083B4C0 /* nibs */ = {
+			isa = PBXGroup;
+			children = (
+				11057DC514EE00D50083B4C0 /* DNViewController.xib */,
+			);
+			name = nibs;
+			sourceTree = "<group>";
+		};
+		11057DCF14EE028A0083B4C0 /* images */ = {
+			isa = PBXGroup;
+			children = (
+				11057DD414EE045B0083B4C0 /* Globe.png */,
+			);
+			name = images;
+			sourceTree = "<group>";
+		};
+		11057DD214EE02B80083B4C0 /* App Delegate */ = {
+			isa = PBXGroup;
+			children = (
+				11057DBF14EE00D50083B4C0 /* DNAppDelegate.h */,
+				11057DC014EE00D50083B4C0 /* DNAppDelegate.m */,
+			);
+			name = "App Delegate";
+			sourceTree = "<group>";
+		};
+		11057DD314EE02C60083B4C0 /* Root View Controller */ = {
+			isa = PBXGroup;
+			children = (
+				11057DC214EE00D50083B4C0 /* DNViewController.h */,
+				11057DC314EE00D50083B4C0 /* DNViewController.m */,
+			);
+			name = "Root View Controller";
+			sourceTree = "<group>";
+		};
+		11057DDA14EE22640083B4C0 /* Tile View */ = {
+			isa = PBXGroup;
+			children = (
+				11057DDB14EE22870083B4C0 /* TileView.h */,
+				11057DDC14EE22870083B4C0 /* TileView.m */,
+			);
+			name = "Tile View";
+			sourceTree = "<group>";
+		};
+		11057DDE14EE286D0083B4C0 /* Tile Model */ = {
+			isa = PBXGroup;
+			children = (
+				11057DDF14EE2B600083B4C0 /* TileModel.h */,
+				11057DE014EE2B600083B4C0 /* TileModel.m */,
+				11057DE214EE36B80083B4C0 /* NSArray+Shuffle.h */,
+				11057DE314EE36B80083B4C0 /* NSArray+Shuffle.m */,
+			);
+			name = "Tile Model";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -150,6 +224,7 @@
 			files = (
 				11057DBB14EE00D50083B4C0 /* InfoPlist.strings in Resources */,
 				11057DC714EE00D50083B4C0 /* DNViewController.xib in Resources */,
+				11057DD514EE045B0083B4C0 /* Globe.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +238,9 @@
 				11057DBD14EE00D50083B4C0 /* main.m in Sources */,
 				11057DC114EE00D50083B4C0 /* DNAppDelegate.m in Sources */,
 				11057DC414EE00D50083B4C0 /* DNViewController.m in Sources */,
+				11057DDD14EE22870083B4C0 /* TileView.m in Sources */,
+				11057DE114EE2B600083B4C0 /* TileModel.m in Sources */,
+				11057DE414EE36B90083B4C0 /* NSArray+Shuffle.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
