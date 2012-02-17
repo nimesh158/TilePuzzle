@@ -11,6 +11,10 @@
 
 @interface DNViewController (Private)
 /**
+    Called to zoom into/out of the reference view
+ */
+- (IBAction) zoomInOut:(id)sender;
+/**
     Sets up the board
  */
 - (void) setupBoardForImage:(NSString *) image;
@@ -22,11 +26,29 @@
     Adds white border to every tile
  */
 - (UIImage *) borderedTile:(UIImage *) image;
+/**
+    This method is used to determine if the tile the user is trying to move
+    has a valid move or not
+    If it does, then the tile is moved and the model is updated
+*/
+- (void) moveSelectedTile:(TileView *) tile;
+
+/**
+    Animates the tile to its proper x and y location
+*/
+- (void) animateTileToLocation:(TileView *) tile andDirection:(PossibleMoves) direction;
+
+/**
+    Checks to see if the game has ended (all the tiles are in their
+    correct position
+*/
+- (BOOL) hasGameEnded;
+
 @end
 
 @implementation DNViewController
 
-@synthesize startGame, boardView, tiles, tileModel;
+@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, tiles, tileModel;
 
 #pragma mark - Memory Mangement
 - (void)didReceiveMemoryWarning
@@ -37,7 +59,12 @@
 
 - (void) dealloc {
     [self.tileModel release], tileModel = nil;
+    for (TileView* view in self.tiles) {
+        [view release], view = nil;
+    }
     [self.tiles release], tiles = nil;
+    [self.zoomIntoReferenceView release], zoomIntoReferenceView = nil;
+    [self.referenceView release], referenceView = nil;
     [self.boardView release], boardView = nil;
     [self.startGame release], startGame = nil;
     [super dealloc];
@@ -49,6 +76,12 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    
+    // Initially hide the board view until it is created
+    self.boardView.alpha = 0.0;
+    
+    // The zoom in button is not enabled until the board is created
+    [self.zoomIntoReferenceView setUserInteractionEnabled:NO];
     
     NSMutableArray* array = [[NSMutableArray alloc] initWithCapacity:15];
     self.tiles = array;
@@ -63,6 +96,11 @@
     
     self.startGame = nil;
     self.boardView = nil;
+    self.referenceView = nil;
+    self.zoomIntoReferenceView = nil;
+    for (TileView* view in self.tiles) {
+        view = nil;
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -102,6 +140,40 @@
     [model release];
     
     [self setupBoardForImage:@"Globe"];
+    
+    [UIView animateWithDuration:1.0
+                     animations:^ {
+                         self.referenceView.frame = CGRectMake(50, 709, 200, 200);
+                         self.boardView.alpha = 1.0;
+                         [self.zoomIntoReferenceView setUserInteractionEnabled:YES];
+                     }
+                     completion:^(BOOL finished) {
+                         [UIView animateWithDuration:0.5
+                                          animations:^ {
+                                              [self.startGame setTitle:@"Reset" forState:UIControlStateNormal];
+                                          }];
+                     }];
+}
+
+- (IBAction) zoomInOut:(id)sender {
+#ifdef DEBUG
+    NSLog(@"Zoom IN/OUT");
+#endif
+    if(self.referenceView.frame.size.width == 200) {
+        // zoom in
+        [UIView animateWithDuration:0.5
+                         animations:^ {
+                             self.referenceView.frame = CGRectMake(50, 369, 540, 540);
+                             self.zoomIntoReferenceView.frame = CGRectMake(0, 0, 540, 540);
+                         }];
+    } else {
+        // zoom out
+        [UIView animateWithDuration:0.5
+                         animations:^ {
+                             self.referenceView.frame = CGRectMake(50, 709, 200, 200);
+                             self.zoomIntoReferenceView.frame = CGRectMake(0, 0, 200, 200);
+                         }];
+    }
 }
 
 #pragma mark - Setup Board
@@ -116,13 +188,6 @@
     int tag = 0;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-#ifdef DEBUG
-            NSLog(@"Tag = %d", tag);
-#endif
-//            if(i == self.tileModel.rowOfTileToBeEmpty &&
-//               j == self.tileModel.columnOfTileToBeEmpty) {
-//                continue;
-//            }
             
             CGRect tileRect = CGRectMake(i * size.width/4.0, (3 - j) * size.height/4.0, size.width/4.0, size.height/4.0);
 #ifdef DEBUG
@@ -141,8 +206,6 @@
             TileView* tileIV = [[TileView alloc] initWithImage:[self borderedTile:image]];
             tileIV.frame = CGRectMake(0, 0, boardImage.size.width/4.0, boardImage.size.width/4.0);
             
-            [self.tiles addObject:tileIV];
-            
             // The x and y position of the tile in the model
             int x, y;
             
@@ -159,9 +222,12 @@
             }
             
             UIView* tileView = [[UIView alloc] initWithFrame:CGRectMake(x * boardImage.size.width/4.0,
-                                                                        y * boardImage.size.width/4.0, boardImage.size.width/4.0, boardImage.size.width/4.0)];
+                                                                        y * boardImage.size.width/4.0, 
+                                                                        boardImage.size.width/4.0, 
+                                                                        boardImage.size.width/4.0)];
             
-            tileIV.winConditionPosition = tag;
+            tileIV.winConditionXPosition = i;
+            tileIV.winConditionYPosition = j;
             
             // Since there are 4 columns (0 -3) in every previous row, we multiply 3
             // to the current row and add it to the column which is then added to the row
@@ -172,7 +238,9 @@
             // 3 7 11 15
             // as the win condition
             
-            tileIV.currentPosition = x + (y + x * 3);
+            tileIV.currentXPosition = x;
+            tileIV.currentYPosition = y;
+            [self.tiles addObject:tileIV];
             [tileView addSubview:tileIV];
             [tileIV release];
             
@@ -187,17 +255,31 @@
             [self.boardView addSubview:tileView];
         }
     }
+
+    // After the whole board is created, 
+    // create a ramdom x, y position and remove the tile from view that was randomly selected to be
+    // the 'hole'
+
+    int removeX = arc4random_uniform(4);
+    int removeY = arc4random_uniform(4);
+
+    int objectToBeRemovedValue = [[[self.tileModel.board objectAtIndex:removeX] objectAtIndex:removeY] intValue];
+    [[self.tileModel.board objectAtIndex:removeX] replaceObjectAtIndex:removeY withObject:[NSNumber numberWithInt:-1]];
+
+#ifdef DEBUG
+    NSLog(@" Modified Board = %@", self.tileModel.board);
+#endif
+    TileView* view = [self.tiles objectAtIndex:objectToBeRemovedValue];
+    view.currentXPosition = -1;
+    view.currentYPosition = -1;
+    view.winConditionXPosition = -1;
+    view.winConditionYPosition = -1;
+    
+    [[view superview] removeFromSuperview];
+    
+    [self.tiles replaceObjectAtIndex:objectToBeRemovedValue withObject:view];
     
     [boardImage release];
-}
-
-#pragma mark - Tap Gesture Recognizer
-- (void) tileTapped:(UITapGestureRecognizer *)tapGesture {
-    TileView* viewTapped = (TileView *)[self.tiles objectAtIndex:tapGesture.view.tag];
-#ifdef DEBUG
-    NSLog(@"Win Condition position of the tile tapped is = %d", viewTapped.winConditionPosition);
-    NSLog(@"Current position of the tile tapped is = %d", viewTapped.currentPosition);
-#endif
 }
 
 #pragma mark - Adds border to a tile image
@@ -246,6 +328,230 @@
     
     // auto-released
 	return newImage;
+}
+
+#pragma mark - Tap Gesture Recognizer
+- (void) tileTapped:(UITapGestureRecognizer *)tapGesture {
+    TileView* viewTapped = (TileView *)[self.tiles objectAtIndex:tapGesture.view.tag];
+#ifdef DEBUG
+//    NSLog(@"Win Condition position of the tile tapped is = %d %d", viewTapped.winConditionXPosition, viewTapped.winConditionYPosition);
+//    NSLog(@"Current position of the tile tapped is = %d %d", viewTapped.currentXPosition, viewTapped.currentYPosition);
+#endif
+    
+    [self moveSelectedTile:viewTapped];
+}
+
+#pragma mark - Move Tile
+- (void) moveSelectedTile:(TileView *) tile {
+    
+    // Check if the tile can be moved UP, DOWN, RIGHT, LEFT
+    // If it can, then the model is udpated in the call automatically
+    // move the tile appropriately
+    
+    // Move tile UP
+    if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
+                                      yPos:tile.currentYPosition
+                              andDirection:UP]) {
+        // Move the tile UP
+        int index = [self.tiles indexOfObject:tile];
+#ifdef DEBUG
+//        NSLog(@"Can Move tile UP");
+        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Update the tile (view)
+        tile.currentYPosition -= 1;
+        [self.tiles replaceObjectAtIndex:index withObject:tile];
+        
+#ifdef DEBUG
+        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Animate the tile to appropriate location
+        [self animateTileToLocation:tile andDirection:UP];
+        
+    } else if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
+                                             yPos:tile.currentYPosition
+                                     andDirection:RIGHT]) {
+        // Move Tile RIGHT
+        int index = [self.tiles indexOfObject:tile];
+#ifdef DEBUG
+//        NSLog(@"Can Move tile RIGHT");
+        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Update the tile (view)
+        tile.currentXPosition += 1;
+        [self.tiles replaceObjectAtIndex:index withObject:tile];
+        
+#ifdef DEBUG
+        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Animate the tile to appropriate location
+        [self animateTileToLocation:tile andDirection:RIGHT];
+        
+    } else if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
+                                             yPos:tile.currentYPosition
+                                     andDirection:DOWN]) {
+        // Move Tile DOWN
+        int index = [self.tiles indexOfObject:tile];
+#ifdef DEBUG
+//        NSLog(@"Can Move tile DOWN");
+        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Update the tile (view)
+        tile.currentYPosition += 1;
+        [self.tiles replaceObjectAtIndex:index withObject:tile];
+        
+#ifdef DEBUG
+        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Animate the tile to appropriate location
+        [self animateTileToLocation:tile andDirection:DOWN];
+        
+    } else if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
+                                             yPos:tile.currentYPosition
+                                     andDirection:LEFT]) {
+        // Move Tile LEFT
+        int index = [self.tiles indexOfObject:tile];
+#ifdef DEBUG
+//        NSLog(@"Can Move tile LEFT");
+        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Update the tile (view)
+        tile.currentXPosition -= 1;
+        [self.tiles replaceObjectAtIndex:index withObject:tile];
+        
+#ifdef DEBUG
+        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+        
+        // Animate the tile to appropriate location
+        [self animateTileToLocation:tile andDirection:LEFT];
+    }
+}
+
+#pragma mark - Animates the tile to location
+- (void) animateTileToLocation:(TileView *) tile andDirection:(PossibleMoves)direction {
+    UIView* parent = [tile superview];
+
+    switch (direction) {
+        case UP: {
+            [UIView animateWithDuration:0.5
+                             animations:^ {
+                                 CGRect frame = parent.frame;
+                                 frame.origin.y -= self.boardView.frame.size.width/4.0;
+                                 parent.frame = frame;
+                             }
+                             completion:^(BOOL finished) {                                 
+                                 // Check if the game has ended
+                                 // If it has ended, show an alert view
+                                 if([self hasGameEnded]) {
+                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                     message:@"The puzzle is solved"
+                                                                                    delegate:nil
+                                                                           cancelButtonTitle:@"Ok"
+                                                                           otherButtonTitles:nil];
+                                     [alert show];
+                                     [alert release];
+                                 }
+                             }];
+            break;
+        }
+            
+        case RIGHT: {
+            [UIView animateWithDuration:0.5
+                             animations:^ {
+                                 CGRect frame = parent.frame;
+                                 frame.origin.x += self.boardView.frame.size.width/4.0;
+                                 parent.frame = frame;
+                             }
+                             completion:^(BOOL finished) {                                 
+                                 // Check if the game has ended
+                                 // If it has ended, show an alert view
+                                 if([self hasGameEnded]) {
+                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                     message:@"The puzzle is solved"
+                                                                                    delegate:nil
+                                                                           cancelButtonTitle:@"Ok"
+                                                                           otherButtonTitles:nil];
+                                     [alert show];
+                                     [alert release];
+                                 }
+                             }];
+            break;
+        }
+            
+        case DOWN: {
+            [UIView animateWithDuration:0.5
+                             animations:^ {
+                                 CGRect frame = parent.frame;
+                                 frame.origin.y += self.boardView.frame.size.width/4.0;
+                                 parent.frame = frame;
+                             }
+                             completion:^(BOOL finished) {                                 
+                                 // Check if the game has ended
+                                 // If it has ended, show an alert view
+                                 if([self hasGameEnded]) {
+                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                     message:@"The puzzle is solved"
+                                                                                    delegate:nil
+                                                                           cancelButtonTitle:@"Ok"
+                                                                           otherButtonTitles:nil];
+                                     [alert show];
+                                     [alert release];
+                                 }
+                             }];
+            break;
+        }
+            
+        case LEFT: {
+            [UIView animateWithDuration:0.5
+                             animations:^ {
+                                 CGRect frame = parent.frame;
+                                 frame.origin.x -= self.boardView.frame.size.width/4.0;
+                                 parent.frame = frame;
+                             }
+                             completion:^(BOOL finished) {                                 
+                                 // Check if the game has ended
+                                 // If it has ended, show an alert view
+                                 if([self hasGameEnded]) {
+                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                     message:@"The puzzle is solved"
+                                                                                    delegate:nil
+                                                                           cancelButtonTitle:@"Ok"
+                                                                           otherButtonTitles:nil];
+                                     [alert show];
+                                     [alert release];
+                                 }
+                             }];
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+#pragma mark - Has Game Ended
+- (BOOL) hasGameEnded {
+    // Loop over every tile and see if it is in the correct place
+    // if YES, then the game has ended
+
+    for(TileView* view in self.tiles) {
+        if(view.currentXPosition != view.winConditionXPosition ||
+           view.currentYPosition != view.winConditionYPosition)
+            return  NO;
+    }
+    return YES;
 }
 
 @end

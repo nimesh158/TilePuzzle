@@ -14,11 +14,17 @@
     Initializes the board
  */
 - (void) initializeTheBoard;
+
+/**
+    This method updates the board for the tile to be moved and the direction 
+    it is to be moved in for consistency
+ */
+- (void) updateBoardForTileXPos:(int) tileXPos yPos:(int) tileYPos andDirection:(PossibleMoves) direction;
 @end
 
 @implementation TileModel
 
-@synthesize board, rowOfTileToBeEmpty, columnOfTileToBeEmpty;
+@synthesize board;
 
 #pragma mark - Initialization and Deallocation
 - (id) init {
@@ -51,18 +57,115 @@
         [column release];
     }
     
-    self.board = [rows shuffledArray:rows];
+    self.board = rows;
     [rows release];
-
-    // Generate random row and column to be empty
-    self.rowOfTileToBeEmpty = arc4random_uniform(4);
-    self.columnOfTileToBeEmpty = arc4random_uniform(4);
-
-    [[self.board objectAtIndex:rowOfTileToBeEmpty] replaceObjectAtIndex:columnOfTileToBeEmpty withObject:[NSNumber numberWithInt:-1]];
     
 #ifdef DEBUG
     NSLog(@"Board = %@", self.board);
 #endif
+}
+
+#pragma mark - Can Move Tile in Direction Of
+- (BOOL) canMoveTileWithXPos:(int)xPos yPos:(int)yPos andDirection:(PossibleMoves)move {
+
+    switch (move) {
+        case UP: {
+            int xToCheck = xPos;
+            int yToCheck = yPos - 1;
+            if(yToCheck < 0)
+                return NO;
+            
+            if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
+                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
+                return YES;
+            }
+            break;
+        }
+            
+        case RIGHT: {
+            int xToCheck =xPos + 1;
+            if(xToCheck > 3)
+                return NO;
+            
+            int yToCheck = yPos;
+            
+            if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
+                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
+                return YES;
+            }
+            break;
+        }
+            
+        case DOWN:{
+            int xToCheck = xPos;
+            int yToCheck = yPos + 1;
+            if(yToCheck > 3)
+                return NO;
+            
+            if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
+                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
+                return YES;
+            }
+            break;
+        }
+            
+        case LEFT: {
+            int xToCheck = xPos - 1;
+            if(xToCheck < 0)
+                return NO;
+            
+            int yToCheck = yPos;
+            
+            if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
+                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
+                return YES;
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+    return NO;
+}
+
+#pragma mark - Update the Board For Tile XPos YPos Direction
+- (void) updateBoardForTileXPos:(int) tileXPos yPos:(int) tileYPos andDirection:(PossibleMoves) direction {
+    switch (direction) {
+        case UP: {
+            int newEmptyY = tileYPos - 1;
+            [[self.board objectAtIndex:tileXPos] exchangeObjectAtIndex:newEmptyY withObjectAtIndex:tileYPos];
+            break;
+        }
+            
+        case RIGHT: {
+            int newEmptyX = tileXPos + 1;
+            
+            int temp = [[[self.board objectAtIndex:tileXPos] objectAtIndex:tileYPos] intValue];
+            [[self.board objectAtIndex:newEmptyX] replaceObjectAtIndex:tileYPos withObject:[NSNumber numberWithInt:temp]];
+            [[self.board objectAtIndex:tileXPos] replaceObjectAtIndex:tileYPos withObject:[NSNumber numberWithInt:-1]];
+            break;
+        }
+            
+        case DOWN: {
+            int newEmptyY = tileYPos + 1;
+            [[self.board objectAtIndex:tileXPos] exchangeObjectAtIndex:newEmptyY withObjectAtIndex:tileYPos];
+            break;
+        }
+            
+        case LEFT: {
+            int newEmptyX = tileXPos - 1;
+            
+            int temp = [[[self.board objectAtIndex:tileXPos] objectAtIndex:tileYPos] intValue];
+            [[self.board objectAtIndex:newEmptyX] replaceObjectAtIndex:tileYPos withObject:[NSNumber numberWithInt:temp]];
+            [[self.board objectAtIndex:tileXPos] replaceObjectAtIndex:tileYPos withObject:[NSNumber numberWithInt:-1]];
+            
+            break;
+        }
+            
+        default:
+            break;
+    }
 }
 
 @end

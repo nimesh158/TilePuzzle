@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "TileModel.h"
 
+
 @interface DNViewController : UIViewController {
     
     // The button to start the game
@@ -16,6 +17,12 @@
     
     // The board view
     IBOutlet UIView* boardView;
+    
+    // The reference Image view
+    IBOutlet UIView* referenceView;
+    
+    // Zoom into the reference view
+    IBOutlet UIButton* zoomIntoReferenceView;
     
     // Keeps a track of all the tiles
     NSMutableArray* tiles;
@@ -26,6 +33,8 @@
 
 @property (nonatomic, retain) UIButton* startGame;
 @property (nonatomic, retain) UIView* boardView;
+@property (nonatomic, retain) UIView* referenceView;
+@property (nonatomic, retain) UIButton* zoomIntoReferenceView;
 @property (nonatomic, retain) NSMutableArray* tiles;
 @property (nonatomic, retain) TileModel* tileModel;
 

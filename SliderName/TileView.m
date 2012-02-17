@@ -10,6 +10,6 @@
 
 @implementation TileView
 
-@synthesize winConditionPosition, currentPosition;
+@synthesize winConditionXPosition, winConditionYPosition, currentXPosition, currentYPosition;
 
 @end
