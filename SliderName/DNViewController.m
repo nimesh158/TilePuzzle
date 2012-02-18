@@ -27,11 +27,17 @@
  */
 - (UIImage *) borderedTile:(UIImage *) image;
 /**
+    Recursive function to determine if the tile above/below/right/left
+    can be moved, in that case move all the tile(s)
+*/
+- (BOOL) canMoveTile:(DNTileView *) tile inDirection:(PossibleMoves) direction;
+
+/**
     This method is used to determine if the tile the user is trying to move
     has a valid move or not
     If it does, then the tile is moved and the model is updated
 */
-- (void) moveSelectedTile:(DNTileView *) tile;
+- (BOOL) moveSelectedTile:(DNTileView *) tile andDirection:(PossibleMoves) direction;
 
 /**
     Animates the tile to its proper x and y location
@@ -360,105 +366,253 @@
 //    NSLog(@"Current position of the tile tapped is = %d %d", viewTapped.currentXPosition, viewTapped.currentYPosition);
 #endif
     
-    [self moveSelectedTile:viewTapped];
+    if([self canMoveTile:viewTapped inDirection:UP]) {
+#ifdef DEBUG
+        NSLog(@"Moving UP");
+#endif
+    }
+    else if([self canMoveTile:viewTapped inDirection:RIGHT]) {
+#ifdef DEBUG
+        NSLog(@"Moving RIGHT");
+#endif
+    }
+    else if ([self canMoveTile:viewTapped inDirection:DOWN]) {
+#ifdef DEBUG
+        NSLog(@"Moving DOWN");
+#endif
+    } else if([self canMoveTile:viewTapped inDirection:LEFT]) {
+#ifdef DEBUG
+        NSLog(@"Moving LEFT");
+#endif
+    }
 }
 
+#pragma mark  - Can Move Tile
+- (BOOL) canMoveTile:(DNTileView *) tile inDirection:(PossibleMoves)direction {
+    switch (direction) {
+        case UP: {
+            if([self.tileModel canMoveTileWithXPos:tile.currentXPosition yPos:tile.currentYPosition andDirection:direction]) {
+                // move the tile up
+                [self moveSelectedTile:tile andDirection:direction];
+                return YES;
+            } else {
+                int newY = tile.currentYPosition-1;
+                if (newY < 0)
+                    return NO;
+                
+                int indexOfTile = [[[self.tileModel.board objectAtIndex:tile.currentXPosition] objectAtIndex:newY] intValue];
+                DNTileView* view = [self.tiles objectAtIndex:indexOfTile];
+                
+                if([self canMoveTile:view inDirection:direction]) {
+                    [self moveSelectedTile:tile andDirection:direction];
+                    return YES;
+                }
+            }
+            
+            return NO;
+            break;
+        }
+            
+        case RIGHT: {
+            if([self.tileModel canMoveTileWithXPos:tile.currentXPosition yPos:tile.currentYPosition andDirection:direction]) {
+                // move the tile up
+                [self moveSelectedTile:tile andDirection:direction];
+                return YES;
+            } else {
+                int newX = tile.currentXPosition+1;
+                if(newX > 3)
+                    return NO;
+                
+                int indexOfTile = [[[self.tileModel.board objectAtIndex:newX] objectAtIndex:tile.currentYPosition] intValue];
+                DNTileView* view = [self.tiles objectAtIndex:indexOfTile];
+                
+                if([self canMoveTile:view inDirection:direction]) {
+                    [self moveSelectedTile:tile andDirection:direction];
+                    return YES;
+                }
+            }
+            
+            return NO;
+            break;
+        }
+            
+        case DOWN: {
+            if([self.tileModel canMoveTileWithXPos:tile.currentXPosition yPos:tile.currentYPosition andDirection:direction]) {
+                // move the tile up
+                [self moveSelectedTile:tile andDirection:direction];
+                return YES;
+            } else {
+                int newY = tile.currentYPosition+1;
+                if(newY > 3)
+                    return NO;
+                
+                int indexOfTile = [[[self.tileModel.board objectAtIndex:tile.currentXPosition] objectAtIndex:newY] intValue];
+                DNTileView* view = [self.tiles objectAtIndex:indexOfTile];
+                
+                if([self canMoveTile:view inDirection:direction]) {
+                    [self moveSelectedTile:tile andDirection:direction];
+                    return YES;
+                }
+            }
+                
+            return NO;
+            break;
+        }
+            
+        case LEFT: {
+            if([self.tileModel canMoveTileWithXPos:tile.currentXPosition yPos:tile.currentYPosition andDirection:direction]) {
+                // move the tile up
+                [self moveSelectedTile:tile andDirection:direction];
+                return YES;
+            } else {
+                int newX = tile.currentXPosition-1;
+                if(newX < 0)
+                    return NO;
+                
+                int indexOfTile = [[[self.tileModel.board objectAtIndex:newX] objectAtIndex:tile.currentYPosition] intValue];
+                DNTileView* view = [self.tiles objectAtIndex:indexOfTile];
+                
+                if([self canMoveTile:view inDirection:direction]) {
+                    [self moveSelectedTile:tile andDirection:direction];
+                    return YES;
+                }
+            }
+            
+            return NO;
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    return NO;
+}
+
+
 #pragma mark - Move Tile
-- (void) moveSelectedTile:(DNTileView *) tile {
+- (BOOL) moveSelectedTile:(DNTileView *) tile andDirection:(PossibleMoves) direction {
     
     // Check if the tile can be moved UP, DOWN, RIGHT, LEFT
     // If it can, then the model is udpated in the call automatically
     // move the tile appropriately
     
-    // Move tile UP
-    if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
-                                      yPos:tile.currentYPosition
-                              andDirection:UP]) {
-        // Move the tile UP
-        int index = [self.tiles indexOfObject:tile];
+    switch (direction) {
+        case UP: {
+            // Update the model
+            [self.tileModel moveTileWithXPos:tile.currentXPosition
+                                        yPos:tile.currentYPosition inDirection:UP];
+            
+            // Move the tile UP
+            int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
-//        NSLog(@"Can Move tile UP");
-        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            //        NSLog(@"Can Move tile UP");
+            NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Update the tile (view)
-        tile.currentYPosition -= 1;
-        [self.tiles replaceObjectAtIndex:index withObject:tile];
-        
+            
+            // Update the tile (view)
+            tile.currentYPosition -= 1;
+            [self.tiles replaceObjectAtIndex:index withObject:tile];
+            
 #ifdef DEBUG
-        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+            NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Animate the tile to appropriate location
-        [self animateTileToLocation:tile andDirection:UP];
-        
-    } else if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
-                                             yPos:tile.currentYPosition
-                                     andDirection:RIGHT]) {
-        // Move Tile RIGHT
-        int index = [self.tiles indexOfObject:tile];
+            
+            // Animate the tile to appropriate location
+            [self animateTileToLocation:tile andDirection:UP];
+            
+            return YES;
+            break;
+        }
+            
+        case RIGHT: {                
+            // Update the model
+            [self.tileModel moveTileWithXPos:tile.currentXPosition
+                                        yPos:tile.currentYPosition inDirection:RIGHT];
+            // Move Tile RIGHT
+            int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
-//        NSLog(@"Can Move tile RIGHT");
-        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            //        NSLog(@"Can Move tile RIGHT");
+            NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Update the tile (view)
-        tile.currentXPosition += 1;
-        [self.tiles replaceObjectAtIndex:index withObject:tile];
-        
+            
+            // Update the tile (view)
+            tile.currentXPosition += 1;
+            [self.tiles replaceObjectAtIndex:index withObject:tile];
+            
 #ifdef DEBUG
-        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+            NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Animate the tile to appropriate location
-        [self animateTileToLocation:tile andDirection:RIGHT];
-        
-    } else if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
-                                             yPos:tile.currentYPosition
-                                     andDirection:DOWN]) {
-        // Move Tile DOWN
-        int index = [self.tiles indexOfObject:tile];
+            
+            // Animate the tile to appropriate location
+            [self animateTileToLocation:tile andDirection:RIGHT];
+            
+            return YES;
+            break;
+        }
+            
+        case DOWN: {
+            // Update the model
+            [self.tileModel moveTileWithXPos:tile.currentXPosition
+                                        yPos:tile.currentYPosition inDirection:DOWN];
+            // Move Tile DOWN
+            int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
-//        NSLog(@"Can Move tile DOWN");
-        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            //        NSLog(@"Can Move tile DOWN");
+            NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Update the tile (view)
-        tile.currentYPosition += 1;
-        [self.tiles replaceObjectAtIndex:index withObject:tile];
-        
+            
+            // Update the tile (view)
+            tile.currentYPosition += 1;
+            [self.tiles replaceObjectAtIndex:index withObject:tile];
+            
 #ifdef DEBUG
-        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+            NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Animate the tile to appropriate location
-        [self animateTileToLocation:tile andDirection:DOWN];
-        
-    } else if([self.tileModel canMoveTileWithXPos:tile.currentXPosition
-                                             yPos:tile.currentYPosition
-                                     andDirection:LEFT]) {
-        // Move Tile LEFT
-        int index = [self.tiles indexOfObject:tile];
+            
+            // Animate the tile to appropriate location
+            [self animateTileToLocation:tile andDirection:DOWN];
+            
+            return YES;
+            break;
+        }
+            
+        case LEFT: {
+            // Update the model
+            [self.tileModel moveTileWithXPos:tile.currentXPosition
+                                        yPos:tile.currentYPosition inDirection:LEFT];
+            
+            // Move Tile LEFT
+            int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
-//        NSLog(@"Can Move tile LEFT");
-        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            //        NSLog(@"Can Move tile LEFT");
+            NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Update the tile (view)
-        tile.currentXPosition -= 1;
-        [self.tiles replaceObjectAtIndex:index withObject:tile];
-        
+            
+            // Update the tile (view)
+            tile.currentXPosition -= 1;
+            [self.tiles replaceObjectAtIndex:index withObject:tile];
+            
 #ifdef DEBUG
-        NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+            NSLog(@"New Board after moving tile = %@", self.tileModel.board);
+            NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
-        
-        // Animate the tile to appropriate location
-        [self animateTileToLocation:tile andDirection:LEFT];
+            
+            // Animate the tile to appropriate location
+            [self animateTileToLocation:tile andDirection:LEFT];
+            
+            return YES;
+            break;
+        }
+            
+        default:
+            break;
     }
+    
+    return NO;
 }
 
 #pragma mark - Animates the tile to location

@@ -80,7 +80,10 @@
     // first move the 14th tile to the right
     // and then created the randomized board
     
-    [self canMoveTileWithXPos:2 yPos:3 andDirection:RIGHT];
+    if([self canMoveTileWithXPos:2 yPos:3 andDirection:RIGHT]) {
+        [self moveTileWithXPos:2 yPos:3 inDirection:RIGHT];
+    }
+    
     while (moves > 0) {
         int xPosToMove = arc4random_uniform(4);
         int yPosToMove = arc4random_uniform(4);
@@ -88,6 +91,7 @@
         
         if(directionToMove > 0) {
             if([self canMoveTileWithXPos:xPosToMove yPos:yPosToMove andDirection:directionToMove]) {
+                [self moveTileWithXPos:xPosToMove yPos:yPosToMove inDirection:directionToMove];
                 moves--;
             }
         }
@@ -107,7 +111,6 @@
                 return NO;
             
             if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
-                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
                 return YES;
             }
             break;
@@ -121,7 +124,6 @@
             int yToCheck = yPos;
             
             if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
-                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
                 return YES;
             }
             break;
@@ -134,7 +136,6 @@
                 return NO;
             
             if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
-                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
                 return YES;
             }
             break;
@@ -148,7 +149,6 @@
             int yToCheck = yPos;
             
             if([[[self.board objectAtIndex:xToCheck] objectAtIndex:yToCheck] intValue] == -1) {
-                [self updateBoardForTileXPos:xPos yPos:yPos andDirection:move];
                 return YES;
             }
             break;
@@ -158,6 +158,11 @@
             break;
     }
     return NO;
+}
+
+#pragma mark - Move Tile
+- (void) moveTileWithXPos:(int)xPos yPos:(int)yPos inDirection:(PossibleMoves)direction {
+    [self updateBoardForTileXPos:xPos yPos:yPos andDirection:direction];
 }
 
 #pragma mark - Update the Board For Tile XPos YPos Direction

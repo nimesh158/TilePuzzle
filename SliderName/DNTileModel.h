@@ -53,6 +53,11 @@ typedef enum Move {
  */
 - (BOOL) canMoveTileWithXPos:(int) xPos yPos:(int) yPos andDirection:(PossibleMoves) move;
 
+/**
+    Performs the updating the model
+*/
+- (void) moveTileWithXPos:(int) xPos yPos:(int) yPos inDirection:(PossibleMoves) direction;
+
 @end
 
 @protocol DNTileModelDelegate <NSObject>
