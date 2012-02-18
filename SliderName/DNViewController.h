@@ -1,6 +1,6 @@
 //
 //  DNViewController.h
-//  SliderGame
+//  SliderPuzzle
 //
 //  Created by Nimesh on 2/16/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -10,7 +10,7 @@
 #import "DNTileModel.h"
 
 
-@interface DNViewController : UIViewController {
+@interface DNViewController : UIViewController <DNTileModelDelegate> {
     
     // The button to start the game
     IBOutlet UIButton* startGame;
@@ -24,6 +24,9 @@
     // Zoom into the reference view
     IBOutlet UIButton* zoomIntoReferenceView;
     
+    // Keeps a track of if the user has initialized the board very first time or not
+    BOOL isBoardInitialized;
+    
     // Keeps a track of all the tiles
     NSMutableArray* tiles;
     
@@ -35,6 +38,7 @@
 @property (nonatomic, retain) UIView* boardView;
 @property (nonatomic, retain) UIView* referenceView;
 @property (nonatomic, retain) UIButton* zoomIntoReferenceView;
+@property (nonatomic, assign) BOOL isBoardInitialized;
 @property (nonatomic, retain) NSMutableArray* tiles;
 @property (nonatomic, retain) DNTileModel* tileModel;
 

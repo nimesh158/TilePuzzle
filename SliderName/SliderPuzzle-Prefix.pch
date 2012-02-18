@@ -1,5 +1,5 @@
 //
-// Prefix header for all source files of the 'SliderGame' target in the 'SliderGame' project
+// Prefix header for all source files of the 'SliderPuzzle' target in the 'SliderPuzzle' project
 //
 
 #import <Availability.h>

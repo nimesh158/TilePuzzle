@@ -1,6 +1,6 @@
 //
 //  DNViewController.m
-//  SliderGame
+//  SliderPuzzle
 //
 //  Created by Nimesh on 2/16/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -48,7 +48,7 @@
 
 @implementation DNViewController
 
-@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, tiles, tileModel;
+@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, isBoardInitialized, tiles, tileModel;
 
 #pragma mark - Memory Mangement
 - (void)didReceiveMemoryWarning
@@ -58,6 +58,7 @@
 }
 
 - (void) dealloc {
+    self.tileModel.delegate = nil;
     [self.tileModel release], tileModel = nil;
     for (DNTileView* view in self.tiles) {
         [view release], view = nil;
@@ -76,6 +77,9 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    
+    // Initially the board is not initialized
+    self.isBoardInitialized = NO;
     
     // Initially hide the board view until it is created
     self.boardView.alpha = 0.0;
@@ -133,26 +137,29 @@
     NSLog(@"Start Game");
 #endif
     
-    
-    // Initialize the model of the board
-    DNTileModel* model = [[DNTileModel alloc] init];
-    self.tileModel = model;
-    [model release];
-    
-    [self setupBoardForImage:@"Globe"];
-    
-    [UIView animateWithDuration:1.0
-                     animations:^ {
-                         self.referenceView.frame = CGRectMake(50, 709, 200, 200);
-                         self.boardView.alpha = 1.0;
-                         [self.zoomIntoReferenceView setUserInteractionEnabled:YES];
-                     }
-                     completion:^(BOOL finished) {
-                         [UIView animateWithDuration:0.5
-                                          animations:^ {
-                                              [self.startGame setTitle:@"Reset" forState:UIControlStateNormal];
-                                          }];
-                     }];
+    if(!self.isBoardInitialized) {
+        // Initialize the model of the board
+        DNTileModel* model = [[DNTileModel alloc] init];
+        self.tileModel = model;
+        self.tileModel.delegate = self;
+        [model release];
+        
+        [self.tileModel initializeTheBoard];
+        self.isBoardInitialized = YES;
+    } else {
+        for(DNTileView* view in self.tiles) {
+            [view removeFromSuperview];
+        }
+        
+        [self.tiles removeAllObjects];
+        [self.tiles release], tiles = nil;
+        
+        NSMutableArray* array = [[NSMutableArray alloc] initWithCapacity:15];
+        self.tiles = array;
+        [array release];
+        
+        [self.tileModel resetBoard];
+    }
 }
 
 - (IBAction) zoomInOut:(id)sender {
@@ -174,6 +181,34 @@
                              self.zoomIntoReferenceView.frame = CGRectMake(0, 0, 200, 200);
                          }];
     }
+}
+
+#pragma mark - DNTileModel Delegate
+- (void) boardInitialized {
+#ifdef DEBUG
+    NSLog(@"Board Initialized");
+#endif
+    [self.tileModel createLegalRandomizedBoardWithNumberOfMoves:100];
+}
+
+- (void) randomizedBoardCreated {
+#ifdef DEBUG
+    NSLog(@"Board Randomized");
+#endif
+    [self setupBoardForImage:@"Globe"];
+    
+    [UIView animateWithDuration:1.0
+                     animations:^ {
+                         self.referenceView.frame = CGRectMake(50, 709, 200, 200);
+                         self.boardView.alpha = 1.0;
+                         [self.zoomIntoReferenceView setUserInteractionEnabled:YES];
+                     }
+                     completion:^(BOOL finished) {
+                         [UIView animateWithDuration:0.5
+                                          animations:^ {
+                                              [self.startGame setTitle:@"Reset" forState:UIControlStateNormal];
+                                          }];
+                     }];
 }
 
 #pragma mark - Setup Board
@@ -255,21 +290,8 @@
             [self.boardView addSubview:tileView];
         }
     }
-
-    // After the whole board is created, 
-    // create a ramdom x, y position and remove the tile from view that was randomly selected to be
-    // the 'hole'
-
-    int removeX = arc4random_uniform(4);
-    int removeY = arc4random_uniform(4);
-
-    int objectToBeRemovedValue = [[[self.tileModel.board objectAtIndex:removeX] objectAtIndex:removeY] intValue];
-    [[self.tileModel.board objectAtIndex:removeX] replaceObjectAtIndex:removeY withObject:[NSNumber numberWithInt:-1]];
-
-#ifdef DEBUG
-    NSLog(@" Modified Board = %@", self.tileModel.board);
-#endif
-    DNTileView* view = [self.tiles objectAtIndex:objectToBeRemovedValue];
+    
+    DNTileView* view = [self.tiles objectAtIndex:15];
     view.currentXPosition = -1;
     view.currentYPosition = -1;
     view.winConditionXPosition = -1;
@@ -277,7 +299,7 @@
     
     [[view superview] removeFromSuperview];
     
-    [self.tiles replaceObjectAtIndex:objectToBeRemovedValue withObject:view];
+    [self.tiles replaceObjectAtIndex:15 withObject:view];
     
     [boardImage release];
 }

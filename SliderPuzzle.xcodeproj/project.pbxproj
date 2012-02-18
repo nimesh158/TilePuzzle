@@ -22,23 +22,23 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		11057DAC14EE00D50083B4C0 /* SliderGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SliderGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		11057DAC14EE00D50083B4C0 /* SliderPuzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SliderPuzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		11057DB014EE00D50083B4C0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		11057DB214EE00D50083B4C0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		11057DB414EE00D50083B4C0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		11057DB814EE00D50083B4C0 /* SliderGame-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SliderGame-Info.plist"; sourceTree = "<group>"; };
+		11057DB814EE00D50083B4C0 /* SliderPuzzle-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SliderPuzzle-Info.plist"; sourceTree = "<group>"; };
 		11057DBA14EE00D50083B4C0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		11057DBC14EE00D50083B4C0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		11057DBE14EE00D50083B4C0 /* SliderGame-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SliderGame-Prefix.pch"; sourceTree = "<group>"; };
+		11057DBE14EE00D50083B4C0 /* SliderPuzzle-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SliderPuzzle-Prefix.pch"; sourceTree = "<group>"; };
 		11057DBF14EE00D50083B4C0 /* DNAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DNAppDelegate.h; sourceTree = "<group>"; };
 		11057DC014EE00D50083B4C0 /* DNAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DNAppDelegate.m; sourceTree = "<group>"; };
 		11057DC214EE00D50083B4C0 /* DNViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DNViewController.h; sourceTree = "<group>"; };
 		11057DC314EE00D50083B4C0 /* DNViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DNViewController.m; sourceTree = "<group>"; };
 		11057DC614EE00D50083B4C0 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DNViewController.xib; sourceTree = "<group>"; };
 		11057DD414EE045B0083B4C0 /* Globe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Globe.png; sourceTree = "<group>"; };
-		11057DDB14EE22870083B4C0 /* DNTileView.h */ = {isa = PBXFileReference; fileEncoding = 4; path = DNTileView.h; sourceTree = "<group>"; };
+		11057DDB14EE22870083B4C0 /* DNTileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNTileView.h; sourceTree = "<group>"; };
 		11057DDC14EE22870083B4C0 /* DNTileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DNTileView.m; sourceTree = "<group>"; };
-		11057DDF14EE2B600083B4C0 /* DNTileModel.h */ = {isa = PBXFileReference; fileEncoding = 4; path = DNTileModel.h; sourceTree = "<group>"; };
+		11057DDF14EE2B600083B4C0 /* DNTileModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNTileModel.h; sourceTree = "<group>"; };
 		11057DE014EE2B600083B4C0 /* DNTileModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DNTileModel.m; sourceTree = "<group>"; };
 		11057DE214EE36B80083B4C0 /* NSArray+Shuffle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Shuffle.h"; sourceTree = "<group>"; };
 		11057DE314EE36B80083B4C0 /* NSArray+Shuffle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Shuffle.m"; sourceTree = "<group>"; };
@@ -61,7 +61,7 @@
 		11057DA114EE00D50083B4C0 = {
 			isa = PBXGroup;
 			children = (
-				11057DB614EE00D50083B4C0 /* SliderGame */,
+				11057DB614EE00D50083B4C0 /* SliderPuzzle */,
 				11057DAF14EE00D50083B4C0 /* Frameworks */,
 				11057DAD14EE00D50083B4C0 /* Products */,
 			);
@@ -70,7 +70,7 @@
 		11057DAD14EE00D50083B4C0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				11057DAC14EE00D50083B4C0 /* SliderGame.app */,
+				11057DAC14EE00D50083B4C0 /* SliderPuzzle.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,27 +85,27 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		11057DB614EE00D50083B4C0 /* SliderGame */ = {
+		11057DB614EE00D50083B4C0 /* SliderPuzzle */ = {
 			isa = PBXGroup;
 			children = (
 				11057DD214EE02B80083B4C0 /* App Delegate */,
-				11057DD314EE02C60083B4C0 /* Root View Controller */,
+				11057DD314EE02C60083B4C0 /* Tile View Controller */,
 				11057DDE14EE286D0083B4C0 /* Tile Model */,
 				11057DDA14EE22640083B4C0 /* Tile View */,
 				11057DCD14EE02740083B4C0 /* Resources */,
 				11057DB714EE00D50083B4C0 /* Supporting Files */,
 			);
-			name = SliderGame;
+			name = SliderPuzzle;
 			path = SliderName;
 			sourceTree = "<group>";
 		};
 		11057DB714EE00D50083B4C0 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				11057DB814EE00D50083B4C0 /* SliderGame-Info.plist */,
+				11057DB814EE00D50083B4C0 /* SliderPuzzle-Info.plist */,
 				11057DB914EE00D50083B4C0 /* InfoPlist.strings */,
 				11057DBC14EE00D50083B4C0 /* main.m */,
-				11057DBE14EE00D50083B4C0 /* SliderGame-Prefix.pch */,
+				11057DBE14EE00D50083B4C0 /* SliderPuzzle-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -144,13 +144,13 @@
 			name = "App Delegate";
 			sourceTree = "<group>";
 		};
-		11057DD314EE02C60083B4C0 /* Root View Controller */ = {
+		11057DD314EE02C60083B4C0 /* Tile View Controller */ = {
 			isa = PBXGroup;
 			children = (
 				11057DC214EE00D50083B4C0 /* DNViewController.h */,
 				11057DC314EE00D50083B4C0 /* DNViewController.m */,
 			);
-			name = "Root View Controller";
+			name = "Tile View Controller";
 			sourceTree = "<group>";
 		};
 		11057DDA14EE22640083B4C0 /* Tile View */ = {
@@ -176,9 +176,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		11057DAB14EE00D50083B4C0 /* SliderGame */ = {
+		11057DAB14EE00D50083B4C0 /* SliderPuzzle */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 11057DCA14EE00D50083B4C0 /* Build configuration list for PBXNativeTarget "SliderGame" */;
+			buildConfigurationList = 11057DCA14EE00D50083B4C0 /* Build configuration list for PBXNativeTarget "SliderPuzzle" */;
 			buildPhases = (
 				11057DA814EE00D50083B4C0 /* Sources */,
 				11057DA914EE00D50083B4C0 /* Frameworks */,
@@ -188,9 +188,9 @@
 			);
 			dependencies = (
 			);
-			name = SliderGame;
+			name = SliderPuzzle;
 			productName = SliderName;
-			productReference = 11057DAC14EE00D50083B4C0 /* SliderGame.app */;
+			productReference = 11057DAC14EE00D50083B4C0 /* SliderPuzzle.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -201,7 +201,7 @@
 			attributes = {
 				LastUpgradeCheck = 0420;
 			};
-			buildConfigurationList = 11057DA614EE00D50083B4C0 /* Build configuration list for PBXProject "SliderGame" */;
+			buildConfigurationList = 11057DA614EE00D50083B4C0 /* Build configuration list for PBXProject "SliderPuzzle" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -213,7 +213,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				11057DAB14EE00D50083B4C0 /* SliderGame */,
+				11057DAB14EE00D50083B4C0 /* SliderPuzzle */,
 			);
 		};
 /* End PBXProject section */
@@ -316,9 +316,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "SliderName/SliderGame-Prefix.pch";
-				INFOPLIST_FILE = "SliderName/SliderGame-Info.plist";
-				PRODUCT_NAME = SliderGame;
+				GCC_PREFIX_HEADER = "SliderName/SliderPuzzle-Prefix.pch";
+				INFOPLIST_FILE = "SliderName/SliderPuzzle-Info.plist";
+				PRODUCT_NAME = SliderPuzzle;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -327,9 +327,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "SliderName/SliderGame-Prefix.pch";
-				INFOPLIST_FILE = "SliderName/SliderGame-Info.plist";
-				PRODUCT_NAME = SliderGame;
+				GCC_PREFIX_HEADER = "SliderName/SliderPuzzle-Prefix.pch";
+				INFOPLIST_FILE = "SliderName/SliderPuzzle-Info.plist";
+				PRODUCT_NAME = SliderPuzzle;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -337,7 +337,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		11057DA614EE00D50083B4C0 /* Build configuration list for PBXProject "SliderGame" */ = {
+		11057DA614EE00D50083B4C0 /* Build configuration list for PBXProject "SliderPuzzle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				11057DC814EE00D50083B4C0 /* Debug */,
@@ -346,7 +346,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		11057DCA14EE00D50083B4C0 /* Build configuration list for PBXNativeTarget "SliderGame" */ = {
+		11057DCA14EE00D50083B4C0 /* Build configuration list for PBXNativeTarget "SliderPuzzle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				11057DCB14EE00D50083B4C0 /* Debug */,

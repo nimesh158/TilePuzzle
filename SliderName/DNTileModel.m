@@ -1,6 +1,6 @@
 //
 //  TileModel.m
-//  SliderGame
+//  SliderPuzzle
 //
 //  Created by Nimesh on 2/17/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -10,10 +10,6 @@
 #import "NSArray+Shuffle.h"
 
 @interface DNTileModel (Private)
-/**
-    Initializes the board
- */
-- (void) initializeTheBoard;
 
 /**
     This method updates the board for the tile to be moved and the direction 
@@ -24,7 +20,7 @@
 
 @implementation DNTileModel
 
-@synthesize board;
+@synthesize delegate, board;
 
 #pragma mark - Initialization and Deallocation
 - (id) init {
@@ -60,9 +56,44 @@
     self.board = rows;
     [rows release];
     
-#ifdef DEBUG
-    NSLog(@"Board = %@", self.board);
-#endif
+    // Remove the very last tile (15th in 0 -15 terms) and then create a legal randomized board
+    // that is solvable
+    
+    // -1 means that it's the 'empty' tile
+    [[self.board objectAtIndex:3] replaceObjectAtIndex:3 withObject:[NSNumber numberWithInt:-1]];
+    
+    [self.delegate boardInitialized];
+}
+
+#pragma mark - Reset the board
+- (void) resetBoard {
+    [self.board removeAllObjects];
+    [self.board release], board = nil;
+    
+    [self initializeTheBoard];
+}
+
+#pragma mark - Create Legal Randomized Board
+- (void) createLegalRandomizedBoardWithNumberOfMoves:(int) moves {
+    
+    // to generate a randomized legal board
+    // first move the 14th tile to the right
+    // and then created the randomized board
+    
+    [self canMoveTileWithXPos:2 yPos:3 andDirection:RIGHT];
+    while (moves > 0) {
+        int xPosToMove = arc4random_uniform(4);
+        int yPosToMove = arc4random_uniform(4);
+        int directionToMove = arc4random_uniform(5);
+        
+        if(directionToMove > 0) {
+            if([self canMoveTileWithXPos:xPosToMove yPos:yPosToMove andDirection:directionToMove]) {
+                moves--;
+            }
+        }
+    }
+    
+    [self.delegate randomizedBoardCreated];
 }
 
 #pragma mark - Can Move Tile in Direction Of
