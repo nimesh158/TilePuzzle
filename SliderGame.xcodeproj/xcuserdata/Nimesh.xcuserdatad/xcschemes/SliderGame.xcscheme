@@ -15,8 +15,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
                BuildableName = "SliderName.app"
-               BlueprintName = "SliderName"
-               ReferencedContainer = "container:SliderName.xcodeproj">
+               BlueprintName = "SliderGame"
+               ReferencedContainer = "container:SliderGame.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,8 +33,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
             BuildableName = "SliderName.app"
-            BlueprintName = "SliderName"
-            ReferencedContainer = "container:SliderName.xcodeproj">
+            BlueprintName = "SliderGame"
+            ReferencedContainer = "container:SliderGame.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </TestAction>
@@ -51,8 +51,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
             BuildableName = "SliderName.app"
-            BlueprintName = "SliderName"
-            ReferencedContainer = "container:SliderName.xcodeproj">
+            BlueprintName = "SliderGame"
+            ReferencedContainer = "container:SliderGame.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
@@ -81,8 +81,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
             BuildableName = "SliderName.app"
-            BlueprintName = "SliderName"
-            ReferencedContainer = "container:SliderName.xcodeproj">
+            BlueprintName = "SliderGame"
+            ReferencedContainer = "container:SliderGame.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

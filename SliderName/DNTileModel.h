@@ -1,6 +1,6 @@
 //
 //  TileModel.h
-//  SliderName
+//  SliderGame
 //
 //  Created by Nimesh on 2/17/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -16,7 +16,7 @@ typedef enum Move {
     LEFT = 4
 } PossibleMoves;
 
-@interface TileModel : NSObject {
+@interface DNTileModel : NSObject {
     
     // The two dimensional board of size 4x4
     NSMutableArray* board;

@@ -1,13 +1,13 @@
 //
 //  DNViewController.h
-//  SliderName
+//  SliderGame
 //
 //  Created by Nimesh on 2/16/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
-#import "TileModel.h"
+#import "DNTileModel.h"
 
 
 @interface DNViewController : UIViewController {
@@ -28,7 +28,7 @@
     NSMutableArray* tiles;
     
     // The tile model object
-    TileModel* tileModel;
+    DNTileModel* tileModel;
 }
 
 @property (nonatomic, retain) UIButton* startGame;
@@ -36,7 +36,7 @@
 @property (nonatomic, retain) UIView* referenceView;
 @property (nonatomic, retain) UIButton* zoomIntoReferenceView;
 @property (nonatomic, retain) NSMutableArray* tiles;
-@property (nonatomic, retain) TileModel* tileModel;
+@property (nonatomic, retain) DNTileModel* tileModel;
 
 /**
     Starts the game 

@@ -1,13 +1,13 @@
 //
 //  DNViewController.m
-//  SliderName
+//  SliderGame
 //
 //  Created by Nimesh on 2/16/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
 #import "DNViewController.h"
-#import "TileView.h"
+#import "DNTileView.h"
 
 @interface DNViewController (Private)
 /**
@@ -31,12 +31,12 @@
     has a valid move or not
     If it does, then the tile is moved and the model is updated
 */
-- (void) moveSelectedTile:(TileView *) tile;
+- (void) moveSelectedTile:(DNTileView *) tile;
 
 /**
     Animates the tile to its proper x and y location
 */
-- (void) animateTileToLocation:(TileView *) tile andDirection:(PossibleMoves) direction;
+- (void) animateTileToLocation:(DNTileView *) tile andDirection:(PossibleMoves) direction;
 
 /**
     Checks to see if the game has ended (all the tiles are in their
@@ -59,7 +59,7 @@
 
 - (void) dealloc {
     [self.tileModel release], tileModel = nil;
-    for (TileView* view in self.tiles) {
+    for (DNTileView* view in self.tiles) {
         [view release], view = nil;
     }
     [self.tiles release], tiles = nil;
@@ -98,7 +98,7 @@
     self.boardView = nil;
     self.referenceView = nil;
     self.zoomIntoReferenceView = nil;
-    for (TileView* view in self.tiles) {
+    for (DNTileView* view in self.tiles) {
         view = nil;
     }
 }
@@ -135,7 +135,7 @@
     
     
     // Initialize the model of the board
-    TileModel* model = [[TileModel alloc] init];
+    DNTileModel* model = [[DNTileModel alloc] init];
     self.tileModel = model;
     [model release];
     
@@ -203,7 +203,7 @@
             UIImage* image = UIGraphicsGetImageFromCurrentImageContext();
             UIGraphicsEndImageContext();
             
-            TileView* tileIV = [[TileView alloc] initWithImage:[self borderedTile:image]];
+            DNTileView* tileIV = [[DNTileView alloc] initWithImage:[self borderedTile:image]];
             tileIV.frame = CGRectMake(0, 0, boardImage.size.width/4.0, boardImage.size.width/4.0);
             
             // The x and y position of the tile in the model
@@ -269,7 +269,7 @@
 #ifdef DEBUG
     NSLog(@" Modified Board = %@", self.tileModel.board);
 #endif
-    TileView* view = [self.tiles objectAtIndex:objectToBeRemovedValue];
+    DNTileView* view = [self.tiles objectAtIndex:objectToBeRemovedValue];
     view.currentXPosition = -1;
     view.currentYPosition = -1;
     view.winConditionXPosition = -1;
@@ -332,7 +332,7 @@
 
 #pragma mark - Tap Gesture Recognizer
 - (void) tileTapped:(UITapGestureRecognizer *)tapGesture {
-    TileView* viewTapped = (TileView *)[self.tiles objectAtIndex:tapGesture.view.tag];
+    DNTileView* viewTapped = (DNTileView *)[self.tiles objectAtIndex:tapGesture.view.tag];
 #ifdef DEBUG
 //    NSLog(@"Win Condition position of the tile tapped is = %d %d", viewTapped.winConditionXPosition, viewTapped.winConditionYPosition);
 //    NSLog(@"Current position of the tile tapped is = %d %d", viewTapped.currentXPosition, viewTapped.currentYPosition);
@@ -342,7 +342,7 @@
 }
 
 #pragma mark - Move Tile
-- (void) moveSelectedTile:(TileView *) tile {
+- (void) moveSelectedTile:(DNTileView *) tile {
     
     // Check if the tile can be moved UP, DOWN, RIGHT, LEFT
     // If it can, then the model is udpated in the call automatically
@@ -356,7 +356,7 @@
         int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
 //        NSLog(@"Can Move tile UP");
-        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Update the tile (view)
@@ -365,7 +365,7 @@
         
 #ifdef DEBUG
         NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Animate the tile to appropriate location
@@ -378,7 +378,7 @@
         int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
 //        NSLog(@"Can Move tile RIGHT");
-        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Update the tile (view)
@@ -387,7 +387,7 @@
         
 #ifdef DEBUG
         NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Animate the tile to appropriate location
@@ -400,7 +400,7 @@
         int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
 //        NSLog(@"Can Move tile DOWN");
-        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Update the tile (view)
@@ -409,7 +409,7 @@
         
 #ifdef DEBUG
         NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Animate the tile to appropriate location
@@ -422,7 +422,7 @@
         int index = [self.tiles indexOfObject:tile];
 #ifdef DEBUG
 //        NSLog(@"Can Move tile LEFT");
-        NSLog(@"Old current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Update the tile (view)
@@ -431,7 +431,7 @@
         
 #ifdef DEBUG
         NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-        NSLog(@"New current position of tile = %d %d", ((TileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((TileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+        NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
         
         // Animate the tile to appropriate location
@@ -440,7 +440,7 @@
 }
 
 #pragma mark - Animates the tile to location
-- (void) animateTileToLocation:(TileView *) tile andDirection:(PossibleMoves)direction {
+- (void) animateTileToLocation:(DNTileView *) tile andDirection:(PossibleMoves)direction {
     UIView* parent = [tile superview];
 
     switch (direction) {
@@ -546,7 +546,7 @@
     // Loop over every tile and see if it is in the correct place
     // if YES, then the game has ended
 
-    for(TileView* view in self.tiles) {
+    for(DNTileView* view in self.tiles) {
         if(view.currentXPosition != view.winConditionXPosition ||
            view.currentYPosition != view.winConditionYPosition)
             return  NO;

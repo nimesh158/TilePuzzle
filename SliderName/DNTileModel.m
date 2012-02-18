@@ -1,15 +1,15 @@
 //
 //  TileModel.m
-//  SliderName
+//  SliderGame
 //
 //  Created by Nimesh on 2/17/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#import "TileModel.h"
+#import "DNTileModel.h"
 #import "NSArray+Shuffle.h"
 
-@interface TileModel (Private)
+@interface DNTileModel (Private)
 /**
     Initializes the board
  */
@@ -22,7 +22,7 @@
 - (void) updateBoardForTileXPos:(int) tileXPos yPos:(int) tileYPos andDirection:(PossibleMoves) direction;
 @end
 
-@implementation TileModel
+@implementation DNTileModel
 
 @synthesize board;
 

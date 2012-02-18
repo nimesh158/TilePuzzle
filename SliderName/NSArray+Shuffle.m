@@ -1,6 +1,6 @@
 //
 //  NSArray+Shuffle.m
-//  SliderName
+//  SliderGame
 //
 //  Created by Nimesh on 2/17/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -8,7 +8,7 @@
 
 #import "NSArray+Shuffle.h"
 
-@implementation NSArray (Shuffle)
+@implementation NSArray (DNShuffle)
 
 #pragma mark - Shuffled Array
 - (NSMutableArray *) shuffledArray:(NSMutableArray *) array {

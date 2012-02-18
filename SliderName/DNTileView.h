@@ -1,6 +1,6 @@
 //
 //  TileView.h
-//  SliderName
+//  SliderGame
 //
 //  Created by Nimesh on 2/17/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TileView : UIImageView {
+@interface DNTileView : UIImageView {
     
     // This value determines the win condition position of the tile
     int winConditionXPosition;
