@@ -399,14 +399,16 @@
 
 #pragma mark - Tile Dragged
 - (void) tileDragged:(UIPanGestureRecognizer *)panGesture {
-    DNTileView* viewTapped = (DNTileView *)[self.tiles objectAtIndex:panGesture.view.tag];
+    DNTileView* viewDragged = (DNTileView *)[self.tiles objectAtIndex:panGesture.view.tag];
     
     // swtich between the various pan gesture states
     switch (panGesture.state) {
             // check to see if the tile the user is trying to drag is draggable
         case UIGestureRecognizerStateBegan: {
-            if([self.tileModel canMoveTileWithXPos:viewTapped.currentXPosition yPos:viewTapped.currentYPosition andDirection:UP]) {
+            if([self.tileModel canMoveTileWithXPos:viewDragged.currentXPosition yPos:viewDragged.currentYPosition andDirection:UP]) {
                 self.tileCanBeDragged = YES;
+                firstX = viewDragged.center.x;
+                firstY = viewDragged.center.y;
             } else {
                 self.tileCanBeDragged = NO;
             }
@@ -420,7 +422,10 @@
 #ifdef DEBUG
                     NSLog(@"Translation y = %f", translation.y);
 #endif
-                    [viewTapped setTransform:CGAffineTransformMakeTranslation(0, translation.y)];
+                    int translatedX = firstX;
+                    int translatedY = firstY + translation.y;
+                    
+                    [viewDragged setCenter:CGPointMake(translatedX, translatedY)];
                     
                     if(translation.y <= -67.0) {
                         finishDragging = YES;
@@ -436,26 +441,25 @@
             
         case UIGestureRecognizerStateEnded: {
             if(finishDragging) {
-                [self.tileModel moveTileWithXPos:viewTapped.currentXPosition
-                                            yPos:viewTapped.currentYPosition inDirection:UP];
+                [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                            yPos:viewDragged.currentYPosition inDirection:UP];
                 
                 // Move the tile UP
-                int index = [self.tiles indexOfObject:viewTapped];
+                int index = [self.tiles indexOfObject:viewDragged];
 #ifdef DEBUG
                 //        NSLog(@"Can Move tile UP");
                 NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
                 
                 // Update the tile (view)
-                viewTapped.currentYPosition -= 1;
-                [self.tiles replaceObjectAtIndex:index withObject:viewTapped];
-        
-                UIView* parent = [viewTapped superview];
+                viewDragged.currentYPosition -= 1;
+                [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                
                 [UIView animateWithDuration:0.5
                                  animations:^ {
-                                     CGRect frame = parent.frame;
-                                     frame.origin.y -= self.boardView.frame.size.width/4.0 + draggedBy;
-                                     parent.frame = frame;
+                                     int finishedX = firstX;
+                                     int finishedY = firstY - self.boardView.frame.size.height/4.0;
+                                     [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
                                  }
                                  completion:^(BOOL finished) {
                                      // Check if the game has ended
@@ -471,26 +475,14 @@
                                      }
                                  }];
             } else {
-                UIView* parent = [viewTapped superview];
+                
                 [UIView animateWithDuration:0.5
                                  animations:^ {
-                                     CGRect frame = parent.frame;
-                                     frame.origin.y += -draggedBy;
-                                     parent.frame = frame;
+                                     int finishedX = firstX;
+                                     int finishedY = firstY;
+                                     [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
                                  }
-                                 completion:^(BOOL finished) {
-                                     // Check if the game has ended
-                                     // If it has ended, show an alert view
-                                     if([self hasGameEnded]) {
-                                         UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
-                                                                                         message:@"The puzzle is solved"
-                                                                                        delegate:nil
-                                                                               cancelButtonTitle:@"Ok"
-                                                                               otherButtonTitles:nil];
-                                         [alert show];
-                                         [alert release];
-                                     }
-                                 }];
+                                 completion:nil];
             }
             break;
         }

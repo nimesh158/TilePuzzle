@@ -36,6 +36,10 @@
     // Keeps a track of how much the tile has been dragged by
     int draggedBy;
     
+    // Keeps a track of the original position
+    int firstX;
+    int firstY;
+    
     // Keeps a track of all the tiles
     NSMutableArray* tiles;
     
