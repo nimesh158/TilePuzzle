@@ -27,6 +27,15 @@
     // Keeps a track of if the user has initialized the board very first time or not
     BOOL isBoardInitialized;
     
+    // Keeps a track if the tile can be dragged or not
+    BOOL tileCanBeDragged;
+    
+    // Keeps track of if the dragging should be finished, or not
+    BOOL finishDragging;
+    
+    // Keeps a track of how much the tile has been dragged by
+    int draggedBy;
+    
     // Keeps a track of all the tiles
     NSMutableArray* tiles;
     
@@ -39,6 +48,7 @@
 @property (nonatomic, retain) UIView* referenceView;
 @property (nonatomic, retain) UIButton* zoomIntoReferenceView;
 @property (nonatomic, assign) BOOL isBoardInitialized;
+@property (nonatomic, assign) BOOL tileCanBeDragged;
 @property (nonatomic, retain) NSMutableArray* tiles;
 @property (nonatomic, retain) DNTileModel* tileModel;
 

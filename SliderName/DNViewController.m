@@ -23,6 +23,10 @@
  */
 - (void) tileTapped:(UITapGestureRecognizer *) tapGesture;
 /**
+    Called when any of the tiles are dragged
+*/
+- (void) tileDragged:(UIPanGestureRecognizer *) panGesture;
+/**
     Adds white border to every tile
  */
 - (UIImage *) borderedTile:(UIImage *) image;
@@ -54,7 +58,7 @@
 
 @implementation DNViewController
 
-@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, isBoardInitialized, tiles, tileModel;
+@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, isBoardInitialized,tileCanBeDragged, tiles, tileModel;
 
 #pragma mark - Memory Mangement
 - (void)didReceiveMemoryWarning
@@ -293,6 +297,12 @@
             [tileView addGestureRecognizer:tap];
             [tap release];
             
+            UIPanGestureRecognizer* pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(tileDragged:)];
+            pan.maximumNumberOfTouches = 1;
+            pan.minimumNumberOfTouches = 1;
+            [tileView addGestureRecognizer:pan];
+            [pan release];
+            
             [self.boardView addSubview:tileView];
         }
     }
@@ -387,8 +397,111 @@
     }
 }
 
+#pragma mark - Tile Dragged
+- (void) tileDragged:(UIPanGestureRecognizer *)panGesture {
+    DNTileView* viewTapped = (DNTileView *)[self.tiles objectAtIndex:panGesture.view.tag];
+    
+    // swtich between the various pan gesture states
+    switch (panGesture.state) {
+            // check to see if the tile the user is trying to drag is draggable
+        case UIGestureRecognizerStateBegan: {
+            if([self.tileModel canMoveTileWithXPos:viewTapped.currentXPosition yPos:viewTapped.currentYPosition andDirection:UP]) {
+                self.tileCanBeDragged = YES;
+            } else {
+                self.tileCanBeDragged = NO;
+            }
+            break;
+        }
+            
+        case UIGestureRecognizerStateChanged: {
+            if(self.tileCanBeDragged) {
+                CGPoint translation = [panGesture translationInView:self.boardView];
+                if(translation.y < 0.0) {
+#ifdef DEBUG
+                    NSLog(@"Translation y = %f", translation.y);
+#endif
+                    [viewTapped setTransform:CGAffineTransformMakeTranslation(0, translation.y)];
+                    
+                    if(translation.y <= -67.0) {
+                        finishDragging = YES;
+                        draggedBy = translation.y;
+                    } else {
+                        finishDragging = NO;
+                        draggedBy = translation.y;
+                    }
+                }
+            }
+            break;
+        }
+            
+        case UIGestureRecognizerStateEnded: {
+            if(finishDragging) {
+                [self.tileModel moveTileWithXPos:viewTapped.currentXPosition
+                                            yPos:viewTapped.currentYPosition inDirection:UP];
+                
+                // Move the tile UP
+                int index = [self.tiles indexOfObject:viewTapped];
+#ifdef DEBUG
+                //        NSLog(@"Can Move tile UP");
+                NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
+                
+                // Update the tile (view)
+                viewTapped.currentYPosition -= 1;
+                [self.tiles replaceObjectAtIndex:index withObject:viewTapped];
+        
+                UIView* parent = [viewTapped superview];
+                [UIView animateWithDuration:0.5
+                                 animations:^ {
+                                     CGRect frame = parent.frame;
+                                     frame.origin.y -= self.boardView.frame.size.width/4.0 + draggedBy;
+                                     parent.frame = frame;
+                                 }
+                                 completion:^(BOOL finished) {
+                                     // Check if the game has ended
+                                     // If it has ended, show an alert view
+                                     if([self hasGameEnded]) {
+                                         UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                         message:@"The puzzle is solved"
+                                                                                        delegate:nil
+                                                                               cancelButtonTitle:@"Ok"
+                                                                               otherButtonTitles:nil];
+                                         [alert show];
+                                         [alert release];
+                                     }
+                                 }];
+            } else {
+                UIView* parent = [viewTapped superview];
+                [UIView animateWithDuration:0.5
+                                 animations:^ {
+                                     CGRect frame = parent.frame;
+                                     frame.origin.y += -draggedBy;
+                                     parent.frame = frame;
+                                 }
+                                 completion:^(BOOL finished) {
+                                     // Check if the game has ended
+                                     // If it has ended, show an alert view
+                                     if([self hasGameEnded]) {
+                                         UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                         message:@"The puzzle is solved"
+                                                                                        delegate:nil
+                                                                               cancelButtonTitle:@"Ok"
+                                                                               otherButtonTitles:nil];
+                                         [alert show];
+                                         [alert release];
+                                     }
+                                 }];
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
 #pragma mark  - Can Move Tile
-- (BOOL) canMoveTile:(DNTileView *) tile inDirection:(PossibleMoves)direction {
+- (BOOL) canMoveTile:(DNTileView *) tile inDirection:(PossibleMoves) direction {
     switch (direction) {
         case UP: {
             if([self.tileModel canMoveTileWithXPos:tile.currentXPosition yPos:tile.currentYPosition andDirection:direction]) {
@@ -513,7 +626,6 @@
             // Update the tile (view)
             tile.currentYPosition -= 1;
             [self.tiles replaceObjectAtIndex:index withObject:tile];
-            
 #ifdef DEBUG
             NSLog(@"New Board after moving tile = %@", self.tileModel.board);
             NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
