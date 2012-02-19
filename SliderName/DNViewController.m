@@ -441,25 +441,34 @@
             
         case UIGestureRecognizerStateEnded: {
             if(finishDragging) {
+#ifdef DEBUG
+                NSLog(@"Old Board before moving tile = %@", self.tileModel.board);
+#endif
                 [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
                                             yPos:viewDragged.currentYPosition inDirection:UP];
                 
                 // Move the tile UP
                 int index = [self.tiles indexOfObject:viewDragged];
 #ifdef DEBUG
-                //        NSLog(@"Can Move tile UP");
+                NSLog(@"New Board after moving tile = %@", self.tileModel.board);
                 NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
 #endif
                 
                 // Update the tile (view)
                 viewDragged.currentYPosition -= 1;
                 [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+#ifdef DEBUG
+                //        NSLog(@"Can Move tile UP");
+                NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+#endif
                 
                 [UIView animateWithDuration:0.5
                                  animations:^ {
                                      int finishedX = firstX;
                                      int finishedY = firstY - self.boardView.frame.size.height/4.0;
                                      [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
+                                     self.tileCanBeDragged = NO;
+                                     finishDragging = NO;
                                  }
                                  completion:^(BOOL finished) {
                                      // Check if the game has ended
@@ -475,14 +484,17 @@
                                      }
                                  }];
             } else {
-                
-                [UIView animateWithDuration:0.5
-                                 animations:^ {
-                                     int finishedX = firstX;
-                                     int finishedY = firstY;
-                                     [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
-                                 }
-                                 completion:nil];
+                if(self.tileCanBeDragged) {
+                    self.tileCanBeDragged = NO;
+                    finishDragging = NO;
+                    [UIView animateWithDuration:0.5
+                                     animations:^ {
+                                         int finishedX = firstX;
+                                         int finishedY = firstY;
+                                         [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
+                                     }
+                                     completion:nil];
+                }
             }
             break;
         }
