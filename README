@@ -1,0 +1,8 @@
+This is an implementation of the N-TIle puzzle game.
+Currently the game supports a 4x4 grid.
+
+Some of the ways to move the tiles are:
+1. Tap on a tile.
+2. Touch drag a tile.
+
+When you try to move a tile in a direction, if any of the tile(s) in that direction can be moved if the move is valid, then all those tiles move too.
