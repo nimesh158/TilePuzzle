@@ -10,6 +10,11 @@
 
 @interface NSArray (DNShuffle)
 
+/**
+    This method is used to randomly swap any two tiles on the board
+    The problem with this method is that it can create a board ~50% of the times that
+    is insolvable.
+*/
 - (NSMutableArray *) shuffledArray:(NSMutableArray *) array;
 
 @end

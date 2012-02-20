@@ -5,10 +5,17 @@
 //  Created by Nimesh on 2/16/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
+//  This is the class that pulls all the strings together.
+//  Creates the tile model, and the tile view.
+//  Creates a randomized legally solvable board
+//  Splits an image into the required grid (in this case a 4x4)
+//  Handles the clicking/dragging of tiles or a row (or column) of tiles
+//
 
 #import "DNViewController.h"
 #import "DNTileView.h"
 
+// Private category on the View Controller class
 @interface DNViewController (Private)
 /**
     Called  when the user drags (moves) the reference view in/out of view

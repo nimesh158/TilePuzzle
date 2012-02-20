@@ -5,10 +5,14 @@
 //  Created by Nimesh on 2/17/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
+//  This is the model class.
+//  This class holds all the logic for the board.
+//
 
 #import "DNTileModel.h"
 #import "NSArray+Shuffle.h"
 
+// Private Category on the TileModel class
 @interface DNTileModel (Private)
 
 /**
@@ -25,7 +29,7 @@ static DNTileModel* sharedModel = nil;
 @synthesize delegate, board;
 
 #pragma mark - Singleton Management
-+(DNTileModel *) sharedModel {
++ (DNTileModel *) sharedModel {
     @synchronized(self) {
         if(sharedModel == nil) {
             sharedModel = [[self alloc] init];
