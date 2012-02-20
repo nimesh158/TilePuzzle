@@ -21,8 +21,7 @@
     // The reference Image view
     IBOutlet UIView* referenceView;
     
-    // Zoom into the reference view
-    IBOutlet UIButton* zoomIntoReferenceView;
+    // Keeps a track of if the reference view should be dragged in/out or not
     
     // Keeps a track of if the user has initialized the board very first time or not
     BOOL isBoardInitialized;
@@ -60,7 +59,6 @@
 @property (nonatomic, retain) UIButton* startGame;
 @property (nonatomic, retain) UIView* boardView;
 @property (nonatomic, retain) UIView* referenceView;
-@property (nonatomic, retain) UIButton* zoomIntoReferenceView;
 @property (nonatomic, assign) BOOL isBoardInitialized;
 @property (nonatomic, assign) PossibleMoves move;
 @property (nonatomic, assign) BOOL tileCanBeDragged;

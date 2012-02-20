@@ -11,9 +11,9 @@
 
 @interface DNViewController (Private)
 /**
-    Called to zoom into/out of the reference view
+    Called  when the user drags (moves) the reference view in/out of view
  */
-- (IBAction) zoomInOut:(id)sender;
+- (void) moveInOut:(UIPanGestureRecognizer *) panGesture;
 /**
     Sets up the board
  */
@@ -52,7 +52,7 @@
 
 @implementation DNViewController
 
-@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, isBoardInitialized, move, tileCanBeDragged, finishDragging, draggedBy, firstX, firstY, tileWidth, tileHeight, tiles, tileModel;
+@synthesize startGame, boardView, referenceView, isBoardInitialized, move, tileCanBeDragged, finishDragging, draggedBy, firstX, firstY, tileWidth, tileHeight, tiles, tileModel;
 
 #pragma mark - Memory Mangement
 - (void)didReceiveMemoryWarning
@@ -68,7 +68,6 @@
         [view release], view = nil;
     }
     [self.tiles release], tiles = nil;
-    [self.zoomIntoReferenceView release], zoomIntoReferenceView = nil;
     [self.referenceView release], referenceView = nil;
     [self.boardView release], boardView = nil;
     [self.startGame release], startGame = nil;
@@ -88,8 +87,12 @@
     // Initially hide the board view until it is created
     self.boardView.alpha = 0.0;
     
-    // The zoom in button is not enabled until the board is created
-    [self.zoomIntoReferenceView setUserInteractionEnabled:NO];
+    // Add the pan gesture to the reference view
+    UIPanGestureRecognizer* pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveInOut:)];
+    [self.referenceView addGestureRecognizer:pan];
+    [pan setMinimumNumberOfTouches:1];
+    [pan setMaximumNumberOfTouches:1];
+    [pan release];
     
     NSMutableArray* array = [[NSMutableArray alloc] initWithCapacity:15];
     self.tiles = array;
@@ -105,7 +108,6 @@
     self.startGame = nil;
     self.boardView = nil;
     self.referenceView = nil;
-    self.zoomIntoReferenceView = nil;
     for (DNTileView* view in self.tiles) {
         view = nil;
     }
@@ -129,9 +131,40 @@
     if(UIInterfaceOrientationIsLandscape(toInterfaceOrientation)) {
         // Landscape
         
+        // Start/Reset button
+        self.startGame.frame = CGRectMake(432, 662, 161, 37);
+        
+        // Board view
+        self.boardView.frame = CGRectMake(242, 50, 540, 540);
+        
+        // The reference view
+        if(self.referenceView.frame.origin.x < 0)
+            self.referenceView.frame = CGRectMake(-1000,
+                                                  self.referenceView.frame.origin.y,
+                                                  1024, 768);
+        else 
+            self.referenceView.frame = CGRectMake(0,
+                                                  self.referenceView.frame.origin.y,
+                                                  1024, 768);
+        
     } else {
         //Portrait
         
+        // Start/Reset button
+        self.startGame.frame = CGRectMake(304, 762, 161, 37);
+        
+        // Board view
+        self.boardView.frame = CGRectMake(114, 150, 540, 540);
+        
+        // The reference view
+        if(self.referenceView.frame.origin.x < 0)
+            self.referenceView.frame = CGRectMake(-740,
+                                                  self.referenceView.frame.origin.y,
+                                                  768, 1024);
+        else 
+            self.referenceView.frame = CGRectMake(0,
+                                                  self.referenceView.frame.origin.y,
+                                                  768, 1024);
     }
 }
 
@@ -164,27 +197,6 @@
     }
 }
 
-- (IBAction) zoomInOut:(id)sender {
-#ifdef DEBUG
-    NSLog(@"Zoom IN/OUT");
-#endif
-    if(self.referenceView.frame.size.width == 200) {
-        // zoom in
-        [UIView animateWithDuration:0.5
-                         animations:^ {
-                             self.referenceView.frame = CGRectMake(50, 369, 540, 540);
-                             self.zoomIntoReferenceView.frame = CGRectMake(0, 0, 540, 540);
-                         }];
-    } else {
-        // zoom out
-        [UIView animateWithDuration:0.5
-                         animations:^ {
-                             self.referenceView.frame = CGRectMake(50, 709, 200, 200);
-                             self.zoomIntoReferenceView.frame = CGRectMake(0, 0, 200, 200);
-                         }];
-    }
-}
-
 #pragma mark - DNTileModel Delegate
 - (void) boardInitialized {
 #ifdef DEBUG
@@ -201,9 +213,12 @@
     
     [UIView animateWithDuration:1.0
                      animations:^ {
-                         self.referenceView.frame = CGRectMake(50, 709, 200, 200);
+                         if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
+                             self.referenceView.frame = CGRectMake(-740, 0, 768, 1024);
+                         } else {
+                             self.referenceView.frame = CGRectMake(-1000, 0, 1024, 768);
+                         }
                          self.boardView.alpha = 1.0;
-                         [self.zoomIntoReferenceView setUserInteractionEnabled:YES];
                      }
                      completion:^(BOOL finished) {
                          [UIView animateWithDuration:0.5
@@ -211,6 +226,89 @@
                                               [self.startGame setTitle:@"Reset" forState:UIControlStateNormal];
                                           }];
                      }];
+}
+
+#pragma mark - Moves the reference view in/out of view
+- (void) moveInOut:(UIPanGestureRecognizer *) panGesture {
+    
+    switch (panGesture.state) {
+        case UIGestureRecognizerStateBegan: {
+            
+            break;
+        }
+            
+        case UIGestureRecognizerStateChanged: {
+            CGPoint translation = [panGesture translationInView:self.referenceView];
+            if(translation.x > 0) {
+                // move in the reference view
+                if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
+                    self.referenceView.frame = CGRectMake(- 760 + translation.x,
+                                                          self.referenceView.frame.origin.y,
+                                                          768, 1024);
+                } else {
+                    self.referenceView.frame = CGRectMake(-1020 + translation.x,
+                                                          self.referenceView.frame.origin.y,
+                                                          1024, 768);
+                }
+            } else {
+                // move in the reference view
+                if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
+                    self.referenceView.frame = CGRectMake(0 + translation.x,
+                                                          self.referenceView.frame.origin.y,
+                                                          768, 1024);
+                } else {
+                    self.referenceView.frame = CGRectMake(0 + translation.x,
+                                                          self.referenceView.frame.origin.y,
+                                                          1024, 768);
+                }
+            }
+            break;
+        }
+        
+        case UIGestureRecognizerStateEnded: {
+            if(UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation])) {
+                if(self.referenceView.frame.origin.x > -380) {
+                    [UIView animateWithDuration:0.3
+                                     animations:^ {
+                                         CGRect frame = self.referenceView.frame;
+                                         frame.origin.x = 0.0;
+                                         self.referenceView.frame = frame;
+                                     }];
+                } else {
+                    [UIView animateWithDuration:0.3
+                                     animations:^ {
+                                         CGRect frame = self.referenceView.frame;
+                                         frame.origin.x = -740;
+                                         self.referenceView.frame = frame;
+                                     }];
+                }
+            } else {
+                if(self.referenceView.frame.origin.x > -512) {
+                    [UIView animateWithDuration:0.3
+                                     animations:^ {
+                                         CGRect frame = self.referenceView.frame;
+                                         frame.origin.x = 0.0;
+                                         self.referenceView.frame = frame;
+                                     }];
+                } else {
+                    [UIView animateWithDuration:0.3
+                                     animations:^ {
+                                         CGRect frame = self.referenceView.frame;
+                                         frame.origin.x = -1000;
+                                         self.referenceView.frame = frame;
+                                     }];
+                }
+            }
+            
+            
+            break;
+        }
+            
+        default:
+            break;
+    }
+    
+    
 }
 
 #pragma mark - Setup Board
