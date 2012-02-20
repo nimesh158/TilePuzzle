@@ -20,7 +20,20 @@
 
 @implementation DNTileModel
 
+static DNTileModel* sharedModel = nil;
+
 @synthesize delegate, board;
+
+#pragma mark - Singleton Management
++(DNTileModel *) sharedModel {
+    @synchronized(self) {
+        if(sharedModel == nil) {
+            sharedModel = [[self alloc] init];
+        }
+    }
+    
+    return sharedModel;
+}
 
 #pragma mark - Initialization and Deallocation
 - (id) init {

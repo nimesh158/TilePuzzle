@@ -143,10 +143,8 @@
     
     if(!self.isBoardInitialized) {
         // Initialize the model of the board
-        DNTileModel* model = [[DNTileModel alloc] init];
-        self.tileModel = model;
+        self.tileModel = [DNTileModel sharedModel];
         self.tileModel.delegate = self;
-        [model release];
         
         [self.tileModel initializeTheBoard];
         self.isBoardInitialized = YES;

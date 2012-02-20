@@ -39,6 +39,11 @@ typedef enum Move {
 @property (nonatomic, retain) NSMutableArray* board;
 
 /**
+    Returns the singleton Instance of the class
+*/
++ (DNTileModel *) sharedModel;
+
+/**
     Initializes the board
  */
 - (void) initializeTheBoard;
