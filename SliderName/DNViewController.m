@@ -48,17 +48,11 @@
 */
 - (void) animateTileToLocation:(DNTileView *) tile andDirection:(PossibleMoves) direction;
 
-/**
-    Checks to see if the game has ended (all the tiles are in their
-    correct position
-*/
-- (BOOL) hasGameEnded;
-
 @end
 
 @implementation DNViewController
 
-@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, isBoardInitialized,tileCanBeDragged, tiles, tileModel;
+@synthesize startGame, boardView, referenceView, zoomIntoReferenceView, isBoardInitialized, move, tileCanBeDragged, finishDragging, draggedBy, firstX, firstY, tileWidth, tileHeight, tiles, tileModel;
 
 #pragma mark - Memory Mangement
 - (void)didReceiveMemoryWarning
@@ -230,11 +224,14 @@
     
     CGSize size = CGSizeMake(boardImage.size.width, boardImage.size.height);
     
+    self.tileWidth = boardImage.size.width/4.0;
+    self.tileHeight = boardImage.size.height/4.0;
+    
     int tag = 0;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             
-            CGRect tileRect = CGRectMake(i * size.width/4.0, (3 - j) * size.height/4.0, size.width/4.0, size.height/4.0);
+            CGRect tileRect = CGRectMake(i * self.tileWidth, (3 - j) * self.tileHeight, self.tileWidth, self.tileHeight);
 #ifdef DEBUG
 //            NSLog(@"Tile Rect = %.1f %.1f %.1f %.1f", tileRect.origin.x, tileRect.origin.y, tileRect.size.width, tileRect.size.height);
 #endif
@@ -249,7 +246,7 @@
             UIGraphicsEndImageContext();
             
             DNTileView* tileIV = [[DNTileView alloc] initWithImage:[self borderedTile:image]];
-            tileIV.frame = CGRectMake(0, 0, boardImage.size.width/4.0, boardImage.size.width/4.0);
+            tileIV.frame = CGRectMake(0, 0, self.tileWidth, self.tileHeight);
             
             // The x and y position of the tile in the model
             int x, y;
@@ -266,10 +263,10 @@
                 }
             }
             
-            UIView* tileView = [[UIView alloc] initWithFrame:CGRectMake(x * boardImage.size.width/4.0,
-                                                                        y * boardImage.size.width/4.0, 
-                                                                        boardImage.size.width/4.0, 
-                                                                        boardImage.size.width/4.0)];
+            UIView* tileView = [[UIView alloc] initWithFrame:CGRectMake(x * self.tileWidth,
+                                                                        y * self.tileHeight, 
+                                                                        self.tileWidth, 
+                                                                        self.tileHeight)];
             
             tileIV.winConditionXPosition = i;
             tileIV.winConditionYPosition = j;
@@ -373,7 +370,7 @@
     DNTileView* viewTapped = (DNTileView *)[self.tiles objectAtIndex:tapGesture.view.tag];
 #ifdef DEBUG
 //    NSLog(@"Win Condition position of the tile tapped is = %d %d", viewTapped.winConditionXPosition, viewTapped.winConditionYPosition);
-//    NSLog(@"Current position of the tile tapped is = %d %d", viewTapped.currentXPosition, viewTapped.currentYPosition);
+    NSLog(@"Current position of the tile tapped is = %d %d", viewTapped.currentXPosition, viewTapped.currentYPosition);
 #endif
     
     if([self canMoveTile:viewTapped inDirection:UP]) {
@@ -400,16 +397,22 @@
 #pragma mark - Tile Dragged
 - (void) tileDragged:(UIPanGestureRecognizer *)panGesture {
     DNTileView* viewDragged = (DNTileView *)[self.tiles objectAtIndex:panGesture.view.tag];
-    
+#ifdef DEBUG
+    //    NSLog(@"Win Condition position of the tile tapped is = %d %d", viewTapped.winConditionXPosition, viewTapped.winConditionYPosition);
+    NSLog(@"Current position of the tile dragged is = %d %d", viewDragged.currentXPosition, viewDragged.currentYPosition);
+#endif
     // swtich between the various pan gesture states
     switch (panGesture.state) {
             // check to see if the tile the user is trying to drag is draggable
         case UIGestureRecognizerStateBegan: {
-            if([self.tileModel canMoveTileWithXPos:viewDragged.currentXPosition yPos:viewDragged.currentYPosition andDirection:UP]) {
+            self.move = [self.tileModel canDragTileWithXPos:viewDragged.currentXPosition yPos:viewDragged.currentYPosition];
+            if(self.move != NONE) {
                 self.tileCanBeDragged = YES;
-                firstX = viewDragged.center.x;
-                firstY = viewDragged.center.y;
+                self.firstX = [viewDragged superview].center.x;
+                self.firstY = [viewDragged superview].center.y;
             } else {
+                self.firstX = 0;
+                self.firstY = 0;
                 self.tileCanBeDragged = NO;
             }
             break;
@@ -417,86 +420,1249 @@
             
         case UIGestureRecognizerStateChanged: {
             if(self.tileCanBeDragged) {
-                CGPoint translation = [panGesture translationInView:self.boardView];
-                if(translation.y < 0.0) {
+                switch (self.move) {
+                    case THREEUP: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.y < 0.0) {
 #ifdef DEBUG
-                    NSLog(@"Translation y = %f", translation.y);
+                            NSLog(@"Translation y = %f", translation.y);
 #endif
-                    int translatedX = firstX;
-                    int translatedY = firstY + translation.y;
-                    
-                    [viewDragged setCenter:CGPointMake(translatedX, translatedY)];
-                    
-                    if(translation.y <= -67.0) {
-                        finishDragging = YES;
-                        draggedBy = translation.y;
-                    } else {
-                        finishDragging = NO;
-                        draggedBy = translation.y;
+                            int translatedX = self.firstX;
+                            int translatedY = self.firstY + translation.y;
+                            
+                            if(translatedY <= self.firstY - self.tileHeight)
+                                translatedY = self.firstY - self.tileHeight;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 2;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition &&
+                                   view.currentYPosition == viewDragged.currentYPosition - 1) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(view.currentXPosition == viewDragged.currentXPosition &&
+                                   view.currentYPosition == viewDragged.currentYPosition - 2) {
+                                    tileTwo = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedY = self.firstY - self.tileHeight + translation.y;
+                            if(translatedY <= self.firstY - self.tileHeight * 2)
+                                translatedY = self.firstY - self.tileHeight * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX, 
+                                                                       translatedY)];
+                            
+                            
+                            translatedY = self.firstY - self.tileHeight * 2 + translation.y;
+                            if(translatedY <= self.firstY - self.tileHeight * 3)
+                                translatedY = self.firstY - self.tileHeight * 3;
+                            
+                            [[tileTwo superview] setCenter:CGPointMake(translatedX, 
+                                                                       translatedY)];
+                            
+                            if(translation.y <= -67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
                     }
+                        
+                    case TWOUP: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.y < 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation y = %f", translation.y);
+#endif
+                            int translatedX = self.firstX;
+                            int translatedY = self.firstY + translation.y;
+                            
+                            if(translatedY <= self.firstY - self.tileHeight)
+                                translatedY = self.firstY - self.tileHeight;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            int counter = 1;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition &&
+                                   view.currentYPosition == viewDragged.currentYPosition - 1) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                                                        
+                            translatedY = self.firstY - self.tileHeight + translation.y;
+                            if(translatedY <= self.firstY - self.tileHeight * 2)
+                                translatedY = self.firstY - self.tileHeight * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX, 
+                                                                       translatedY)];
+                            
+                            if(translation.y <= -67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case UP: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.y < 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation y = %f", translation.y);
+#endif
+                            int translatedX = self.firstX;
+                            int translatedY = self.firstY + translation.y;
+                            
+                            if(translatedY <= self.firstY - self.tileHeight)
+                                translatedY = self.firstY - self.tileHeight;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            if(translation.y <= -67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case THREERIGHT: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.x > 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation x = %f", translation.x);
+#endif
+                            int translatedX = self.firstX + translation.x;
+                            int translatedY = self.firstY;
+                            
+                            if(translatedX >= self.firstX + self.tileWidth)
+                                translatedX = self.firstX + self.tileWidth;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 2;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition + 1 &&
+                                   view.currentYPosition == viewDragged.currentYPosition) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(view.currentXPosition == viewDragged.currentXPosition + 2 &&
+                                   view.currentYPosition == viewDragged.currentYPosition) {
+                                    tileTwo = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedX = self.firstX + self.tileWidth + translation.x;
+                            if (translatedX >= self.firstX + self.tileWidth * 2)
+                                translatedX = self.firstX + self.tileWidth * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX,
+                                                                       translatedY)];
+                            
+                            translatedX = self.firstX + self.tileWidth * 2 + translation.x;
+                            if(translatedX >= self.firstX + self.tileWidth * 3)
+                                translatedX = self.firstX + self.tileWidth * 3;
+                            
+                            [[tileTwo superview] setCenter:CGPointMake(translatedX, 
+                                                                       translatedY)];
+                            
+                            if(translation.x >= 67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case TWORIGHT: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.x > 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation x = %f", translation.x);
+#endif
+                            int translatedX = self.firstX + translation.x;
+                            int translatedY = self.firstY;
+                            
+                            if(translatedX >= self.firstX + self.tileWidth)
+                                translatedX = self.firstX + self.tileWidth;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 1;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition + 1 &&
+                                   view.currentYPosition == viewDragged.currentYPosition) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedX = self.firstX + self.tileWidth + translation.x;
+                            if (translatedX >= self.firstX + self.tileWidth * 2)
+                                translatedX = self.firstX + self.tileWidth * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX,
+                                                                       translatedY)];
+                            
+                            if(translation.x >= 67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case RIGHT: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.x > 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation x = %f", translation.x);
+#endif
+                            int translatedX = self.firstX + translation.x;
+                            int translatedY = self.firstY;
+                            
+                            if(translatedX >= self.firstX + self.tileWidth)
+                                translatedX = self.firstX + self.tileWidth;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            if(translation.x >= 67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case THREEDOWN: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.y > 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation y = %f", translation.y);
+#endif
+                            int translatedX = self.firstX;
+                            int translatedY = self.firstY + translation.y;
+                            
+                            if(translatedY >= self.firstY + self.tileHeight)
+                                translatedY = self.firstY + self.tileHeight;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 2;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition &&
+                                   view.currentYPosition == viewDragged.currentYPosition + 1) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(view.currentXPosition == viewDragged.currentXPosition &&
+                                   view.currentYPosition == viewDragged.currentYPosition + 2) {
+                                    tileTwo = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedY = self.firstY + self.tileHeight + translation.y;
+                            if(translatedY >= self.firstY + self.tileHeight * 2)
+                                translatedY = self.firstY + self.tileHeight * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX, 
+                                                           translatedY)];
+                            
+                            translatedY = self.firstY + self.tileHeight * 2 + translation.y;
+                            if(translatedY >= self.firstY + self.tileHeight * 3)
+                                translatedY = self.firstY + self.tileHeight * 3;
+                            
+                            [[tileTwo superview] setCenter:CGPointMake(translatedX, 
+                                                           translatedY)];
+                            
+                            if(translation.y >= 67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case TWODOWN: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.y > 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation y = %f", translation.y);
+#endif
+                            int translatedX = self.firstX;
+                            int translatedY = self.firstY + translation.y;
+                            
+                            if(translatedY >= self.firstY + self.tileHeight)
+                                translatedY = self.firstY + self.tileHeight;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 1;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition &&
+                                   view.currentYPosition == viewDragged.currentYPosition + 1) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedY = self.firstY + self.tileHeight + translation.y;
+                            if(translatedY >= self.firstY + self.tileHeight * 2)
+                                translatedY = self.firstY + self.tileHeight * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX, 
+                                                                       translatedY)];
+                            
+                            if(translation.y >= 67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case DOWN: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.y > 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation y = %f", translation.y);
+#endif
+                            int translatedX = self.firstX;
+                            int translatedY = self.firstY + translation.y;
+                            
+                            if(translatedY >= self.firstY + self.tileHeight)
+                                translatedY = self.firstY + self.tileHeight;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            if(translation.y >= 67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case THREELEFT: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.x < 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation x = %f", translation.x);
+#endif
+                            int translatedX = self.firstX + translation.x;
+                            int translatedY = self.firstY;
+                            
+                            if(translatedX <= self.firstX - self.tileWidth)
+                                translatedX = self.firstX - self.tileWidth;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 2;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition - 1 &&
+                                   view.currentYPosition == viewDragged.currentYPosition) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(view.currentXPosition == viewDragged.currentXPosition - 2 &&
+                                   view.currentYPosition == viewDragged.currentYPosition) {
+                                    tileTwo = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedX = self.firstX - self.tileWidth + translation.x;
+                            if(translatedX <= self.firstX - self.tileWidth * 2)
+                                translatedX = self.firstX - self.tileWidth * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            translatedX = self.firstX - self.tileWidth * 2 + translation.x;
+                            if(translatedX <= self.firstX - self.tileWidth * 3)
+                                translatedX = self.firstX - self.tileWidth * 3;
+                            
+                            [[tileTwo superview] setCenter:CGPointMake(translatedX,
+                                                                       translatedY)];
+                            
+                            if(translation.x <= -67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case TWOLEFT: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.x < 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation x = %f", translation.x);
+#endif
+                            int translatedX = self.firstX + translation.x;
+                            int translatedY = self.firstY;
+                            
+                            if(translatedX <= self.firstX - self.tileWidth)
+                                translatedX = self.firstX - self.tileWidth;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            int counter = 1;
+                            
+                            for (DNTileView* view in self.tiles) {
+                                if(view.currentXPosition == viewDragged.currentXPosition - 1 &&
+                                   view.currentYPosition == viewDragged.currentYPosition) {
+                                    tileOne = view;
+                                    counter--;
+                                }
+                                
+                                if(counter <= 0)
+                                    break;
+                            }
+                            
+                            translatedX = self.firstX - self.tileWidth + translation.x;
+                            if(translatedX <= self.firstX - self.tileWidth * 2)
+                                translatedX = self.firstX - self.tileWidth * 2;
+                            
+                            [[tileOne superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            if(translation.x <= -67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    case LEFT: {
+                        CGPoint translation = [panGesture translationInView:self.boardView];
+                        if(translation.x < 0.0) {
+#ifdef DEBUG
+                            NSLog(@"Translation x = %f", translation.x);
+#endif
+                            int translatedX = self.firstX + translation.x;
+                            int translatedY = self.firstY;
+                            
+                            if(translatedX <= self.firstX - self.tileWidth)
+                                translatedX = self.firstX - self.tileWidth;
+                            
+                            [[viewDragged superview] setCenter:CGPointMake(translatedX, translatedY)];
+                            
+                            if(translation.x <= -67.0) {
+                                self.finishDragging = YES;
+                                self.draggedBy = translation.y;
+                            } else {
+                                self.finishDragging = NO;
+                                self.draggedBy = translation.y;
+                            }
+                        }
+                        break;
+                    }
+                        
+                    default:
+                        break;
                 }
             }
             break;
         }
             
         case UIGestureRecognizerStateEnded: {
-            if(finishDragging) {
+            if(self.tileCanBeDragged) {
+                switch (self.move) {
+                    case THREEUP: {
+                        if(self.finishDragging) {
 #ifdef DEBUG
-                NSLog(@"Old Board before moving tile = %@", self.tileModel.board);
+                            NSLog(@"Board before = %@", self.tileModel.board);
 #endif
-                [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
-                                            yPos:viewDragged.currentYPosition inDirection:UP];
-                
-                // Move the tile UP
-                int index = [self.tiles indexOfObject:viewDragged];
+                            // update the 3 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileTwo.currentXPosition yPos:tileTwo.currentYPosition inDirection:UP];
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:UP];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:UP];
 #ifdef DEBUG
-                NSLog(@"New Board after moving tile = %@", self.tileModel.board);
-                NSLog(@"Old current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+                            NSLog(@"Board after = %@", self.tileModel.board);
 #endif
-                
-                // Update the tile (view)
-                viewDragged.currentYPosition -= 1;
-                [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                           // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            int index3 = [self.tiles indexOfObject:tileTwo];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentYPosition -= 1;
+                            tileOne.currentYPosition -= 1;
+                            tileTwo.currentYPosition -= 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index3 withObject:tileTwo];
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = firstX;
+                                                 int finishedY = firstY - self.tileHeight;
+                                                 [[tileTwo superview] setCenter:CGPointMake(finishedX, self.firstY - self.tileHeight * 3)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, self.firstY - self.tileHeight * 2)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, finishedY - self.tileHeight)];
+                                                 [[tileTwo superview] setCenter:CGPointMake(finishedX, finishedY - self.tileHeight * 2)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case TWOUP: {
+                        if(self.finishDragging) {
 #ifdef DEBUG
-                //        NSLog(@"Can Move tile UP");
-                NSLog(@"New current position of tile = %d %d", ((DNTileView *)[self.tiles objectAtIndex:index]).currentXPosition, ((DNTileView *)[self.tiles objectAtIndex:index]).currentYPosition);
+                            NSLog(@"Board before = %@", self.tileModel.board);
 #endif
-                
-                [UIView animateWithDuration:0.5
-                                 animations:^ {
-                                     int finishedX = firstX;
-                                     int finishedY = firstY - self.boardView.frame.size.height/4.0;
-                                     [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
-                                     self.tileCanBeDragged = NO;
-                                     finishDragging = NO;
-                                 }
-                                 completion:^(BOOL finished) {
-                                     // Check if the game has ended
-                                     // If it has ended, show an alert view
-                                     if([self hasGameEnded]) {
-                                         UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
-                                                                                         message:@"The puzzle is solved"
-                                                                                        delegate:nil
-                                                                               cancelButtonTitle:@"Ok"
-                                                                               otherButtonTitles:nil];
-                                         [alert show];
-                                         [alert release];
-                                     }
-                                 }];
-            } else {
-                if(self.tileCanBeDragged) {
-                    self.tileCanBeDragged = NO;
-                    finishDragging = NO;
-                    [UIView animateWithDuration:0.5
-                                     animations:^ {
-                                         int finishedX = firstX;
-                                         int finishedY = firstY;
-                                         [viewDragged setCenter:CGPointMake(finishedX, finishedY)];
-                                     }
-                                     completion:nil];
+                            // update the 2 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:UP];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:UP];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentYPosition -= 1;
+                            tileOne.currentYPosition -= 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY - self.tileHeight;
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, self.firstY - self.tileHeight * 2)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, finishedY - self.tileHeight)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case UP: {
+                        if(self.finishDragging) {
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:UP];
+                            
+                            // Move the tile UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentYPosition -= 1;
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = firstX;
+                                                 int finishedY = firstY - self.tileHeight;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        
+                        break;
+                    }
+                        
+                    case THREERIGHT: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the 3 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileTwo.currentXPosition yPos:tileTwo.currentYPosition inDirection:RIGHT];
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:RIGHT];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:RIGHT];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            int index3 = [self.tiles indexOfObject:tileTwo];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentXPosition += 1;
+                            tileOne.currentXPosition += 1;
+                            tileTwo.currentXPosition += 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index3 withObject:tileTwo];
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX + self.tileWidth;
+                                                 int finishedY = self.firstY;
+                                                 [[tileTwo superview] setCenter:CGPointMake(self.firstX + self.tileWidth * 3, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(self.firstX + self.tileWidth * 2, finishedY)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX + self.tileWidth, finishedY)];
+                                                 [[tileTwo superview] setCenter:CGPointMake(finishedX + self.tileWidth * 2, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case TWORIGHT: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the 2 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:RIGHT];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:RIGHT];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentXPosition += 1;
+                            tileOne.currentXPosition += 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX + self.tileWidth;
+                                                 int finishedY = self.firstY;
+                                                 [[tileOne superview] setCenter:CGPointMake(self.firstX + self.tileWidth * 2, finishedY)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX + self.tileWidth, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case RIGHT: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the tile in the model
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:RIGHT];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentXPosition += 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX + self.tileWidth;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case THREEDOWN: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the 3 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileTwo.currentXPosition yPos:tileTwo.currentYPosition inDirection:DOWN];
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:DOWN];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:DOWN];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            int index3 = [self.tiles indexOfObject:tileTwo];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentYPosition += 1;
+                            tileOne.currentYPosition += 1;
+                            tileTwo.currentYPosition += 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index3 withObject:tileTwo];
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY + self.tileHeight;
+                                                 [[tileTwo superview] setCenter:CGPointMake(finishedX, self.firstY + self.tileHeight * 3)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, self.firstY + self.tileHeight * 2)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, finishedY + self.tileHeight)];
+                                                 [[tileTwo superview] setCenter:CGPointMake(finishedX, finishedY + self.tileHeight * 2)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case TWODOWN: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the 2 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:DOWN];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:DOWN];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentYPosition += 1;
+                            tileOne.currentYPosition += 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY + self.tileHeight;
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, self.firstY + self.tileHeight * 2)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX, finishedY + self.tileHeight)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case DOWN: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the tile in the model
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:DOWN];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentYPosition += 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY + self.tileHeight;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case THREELEFT: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the 3 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileTwo.currentXPosition yPos:tileTwo.currentYPosition inDirection:LEFT];
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:LEFT];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:LEFT];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            int index3 = [self.tiles indexOfObject:tileTwo];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentXPosition -= 1;
+                            tileOne.currentXPosition -= 1;
+                            tileTwo.currentXPosition -= 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index3 withObject:tileTwo];
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX - self.tileWidth;
+                                                 int finishedY = self.firstY;
+                                                 [[tileTwo superview] setCenter:CGPointMake(self.firstX - self.tileWidth * 3, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(self.firstX - self.tileWidth * 2, finishedY)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX - self.tileWidth, finishedY)];
+                                                 [[tileTwo superview] setCenter:CGPointMake(finishedX - self.tileWidth * 2, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case TWOLEFT: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the 2 tiles in the model
+                            [self.tileModel moveTileWithXPos:tileOne.currentXPosition yPos:tileOne.currentYPosition inDirection:LEFT];
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:LEFT];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            int index2 = [self.tiles indexOfObject:tileOne];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentXPosition -= 1;
+                            tileOne.currentXPosition -= 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index2 withObject:tileOne];
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX - self.tileWidth;
+                                                 int finishedY = self.firstY;
+                                                 [[tileOne superview] setCenter:CGPointMake(self.firstX - self.tileWidth * 2, finishedY)];
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 [[tileOne superview] setCenter:CGPointMake(finishedX - self.tileWidth, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    case LEFT: {
+                        if(self.finishDragging) {
+#ifdef DEBUG
+                            NSLog(@"Board before = %@", self.tileModel.board);
+#endif
+                            // update the tile in the model
+                            [self.tileModel moveTileWithXPos:viewDragged.currentXPosition
+                                                        yPos:viewDragged.currentYPosition inDirection:LEFT];
+#ifdef DEBUG
+                            NSLog(@"Board after = %@", self.tileModel.board);
+#endif
+                            
+                            // Move the tiles UP
+                            int index = [self.tiles indexOfObject:viewDragged];
+                            
+                            // Update the tile (view)
+                            viewDragged.currentXPosition -= 1;
+                            
+                            [self.tiles replaceObjectAtIndex:index withObject:viewDragged];
+                            
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX - self.tileWidth;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                                 self.tileCanBeDragged = NO;
+                                                 self.finishDragging = NO;
+                                             }
+                                             completion:^(BOOL finished) {
+                                                 // Check if the game has ended
+                                                 // If it has ended, show an alert view
+                                                 if([self.tileModel hasGameEnded]) {
+                                                     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
+                                                                                                     message:@"The puzzle is solved"
+                                                                                                    delegate:nil
+                                                                                           cancelButtonTitle:@"Ok"
+                                                                                           otherButtonTitles:nil];
+                                                     [alert show];
+                                                     [alert release];
+                                                 }
+                                             }];
+                        } else {
+                            self.tileCanBeDragged = NO;
+                            self.finishDragging = NO;
+                            [UIView animateWithDuration:0.5
+                                             animations:^ {
+                                                 int finishedX = self.firstX;
+                                                 int finishedY = self.firstY;
+                                                 [[viewDragged superview] setCenter:CGPointMake(finishedX, finishedY)];
+                                             }
+                                             completion:nil];
+                        }
+                        break;
+                    }
+                        
+                    default:
+                        break;
                 }
             }
-            break;
         }
             
         default:
@@ -740,13 +1906,13 @@
             [UIView animateWithDuration:0.5
                              animations:^ {
                                  CGRect frame = parent.frame;
-                                 frame.origin.y -= self.boardView.frame.size.width/4.0;
+                                 frame.origin.y -= self.tileHeight;
                                  parent.frame = frame;
                              }
                              completion:^(BOOL finished) {                                 
                                  // Check if the game has ended
                                  // If it has ended, show an alert view
-                                 if([self hasGameEnded]) {
+                                 if([self.tileModel hasGameEnded]) {
                                      UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
                                                                                      message:@"The puzzle is solved"
                                                                                     delegate:nil
@@ -763,13 +1929,13 @@
             [UIView animateWithDuration:0.5
                              animations:^ {
                                  CGRect frame = parent.frame;
-                                 frame.origin.x += self.boardView.frame.size.width/4.0;
+                                 frame.origin.x += self.tileWidth;
                                  parent.frame = frame;
                              }
                              completion:^(BOOL finished) {                                 
                                  // Check if the game has ended
                                  // If it has ended, show an alert view
-                                 if([self hasGameEnded]) {
+                                 if([self.tileModel hasGameEnded]) {
                                      UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
                                                                                      message:@"The puzzle is solved"
                                                                                     delegate:nil
@@ -786,13 +1952,13 @@
             [UIView animateWithDuration:0.5
                              animations:^ {
                                  CGRect frame = parent.frame;
-                                 frame.origin.y += self.boardView.frame.size.width/4.0;
+                                 frame.origin.y += self.tileHeight;
                                  parent.frame = frame;
                              }
                              completion:^(BOOL finished) {                                 
                                  // Check if the game has ended
                                  // If it has ended, show an alert view
-                                 if([self hasGameEnded]) {
+                                 if([self.tileModel hasGameEnded]) {
                                      UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
                                                                                      message:@"The puzzle is solved"
                                                                                     delegate:nil
@@ -809,13 +1975,13 @@
             [UIView animateWithDuration:0.5
                              animations:^ {
                                  CGRect frame = parent.frame;
-                                 frame.origin.x -= self.boardView.frame.size.width/4.0;
+                                 frame.origin.x -= self.tileWidth;
                                  parent.frame = frame;
                              }
                              completion:^(BOOL finished) {                                 
                                  // Check if the game has ended
                                  // If it has ended, show an alert view
-                                 if([self hasGameEnded]) {
+                                 if([self.tileModel hasGameEnded]) {
                                      UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Congratulations!"
                                                                                      message:@"The puzzle is solved"
                                                                                     delegate:nil
@@ -831,19 +1997,6 @@
         default:
             break;
     }
-}
-
-#pragma mark - Has Game Ended
-- (BOOL) hasGameEnded {
-    // Loop over every tile and see if it is in the correct place
-    // if YES, then the game has ended
-
-    for(DNTileView* view in self.tiles) {
-        if(view.currentXPosition != view.winConditionXPosition ||
-           view.currentYPosition != view.winConditionYPosition)
-            return  NO;
-    }
-    return YES;
 }
 
 @end

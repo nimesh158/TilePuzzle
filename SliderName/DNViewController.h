@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "DNTileModel.h"
-
+#import "DNTileView.h"
 
 @interface DNViewController : UIViewController <DNTileModelDelegate> {
     
@@ -27,6 +27,13 @@
     // Keeps a track of if the user has initialized the board very first time or not
     BOOL isBoardInitialized;
     
+    // Keeps a track of what kind of move the tile can make
+    PossibleMoves move;
+    
+    // The maximum of two tiles that can be dragged with the current tile
+    DNTileView* tileOne;
+    DNTileView* tileTwo;
+    
     // Keeps a track if the tile can be dragged or not
     BOOL tileCanBeDragged;
     
@@ -40,6 +47,9 @@
     int firstX;
     int firstY;
     
+    // Keeps a reference to the individual tile width and height
+    int tileWidth, tileHeight;
+    
     // Keeps a track of all the tiles
     NSMutableArray* tiles;
     
@@ -52,7 +62,14 @@
 @property (nonatomic, retain) UIView* referenceView;
 @property (nonatomic, retain) UIButton* zoomIntoReferenceView;
 @property (nonatomic, assign) BOOL isBoardInitialized;
+@property (nonatomic, assign) PossibleMoves move;
 @property (nonatomic, assign) BOOL tileCanBeDragged;
+@property (nonatomic, assign) BOOL finishDragging;
+@property (nonatomic, assign) int draggedBy;
+@property (nonatomic, assign) int firstX;
+@property (nonatomic, assign) int firstY;
+@property (nonatomic, assign) int tileWidth;
+@property (nonatomic, assign) int tileHeight;
 @property (nonatomic, retain) NSMutableArray* tiles;
 @property (nonatomic, retain) DNTileModel* tileModel;
 

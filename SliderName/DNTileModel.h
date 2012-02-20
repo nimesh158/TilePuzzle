@@ -9,11 +9,19 @@
 #import <Foundation/Foundation.h>
 
 typedef enum Move {
-    NONE = 0,
-    UP = 1,
-    RIGHT = 2,
-    DOWN = 3,
-    LEFT = 4
+    NONE        =   0,
+    UP          =   1,
+    RIGHT       =   2,
+    DOWN        =   3,
+    LEFT        =   4,
+    TWOUP       =   5,
+    THREEUP     =   6,
+    TWORIGHT    =   7,
+    THREERIGHT  =   8,
+    TWODOWN     =   9,
+    THREEDOWN   =   10,
+    TWOLEFT     =   11,
+    THREELEFT   =   12
 } PossibleMoves;
 
 @protocol DNTileModelDelegate;
@@ -54,9 +62,21 @@ typedef enum Move {
 - (BOOL) canMoveTileWithXPos:(int) xPos yPos:(int) yPos andDirection:(PossibleMoves) move;
 
 /**
+    Returns what kind of dragging move the current tile the user is trying to drag
+    can take place
+*/
+- (PossibleMoves) canDragTileWithXPos:(int) xPos yPos:(int) yPos;
+
+/**
     Performs the updating the model
 */
 - (void) moveTileWithXPos:(int) xPos yPos:(int) yPos inDirection:(PossibleMoves) direction;
+
+/**
+    Performs a check to see if the game has ended by checking if all the tiles are in their
+    correct position
+*/
+- (BOOL) hasGameEnded;
 
 @end
 

@@ -161,6 +161,72 @@
     return NO;
 }
 
+#pragma mark - Can Drag Tile
+- (PossibleMoves) canDragTileWithXPos:(int)xPos yPos:(int)yPos {
+    
+    // Check if 3 tiles can be dragged up
+    if([self canMoveTileWithXPos:xPos yPos:yPos-2 andDirection:UP]) {
+        return THREEUP;
+    }
+    
+    // check if two tiles can be dragged up
+    if ([self canMoveTileWithXPos:xPos yPos:yPos-1 andDirection:UP]) {
+        return TWOUP;
+    }
+    
+    // check if the tile can be dragged up
+    if([self canMoveTileWithXPos:xPos yPos:yPos andDirection:UP]){
+        return UP;
+    }
+    
+    // Check if 3 tiles can be dragged right
+    if([self canMoveTileWithXPos:xPos+2 yPos:yPos andDirection:RIGHT]) {
+        return THREERIGHT;
+    }
+    
+    // check if two tiles can be dragged right
+    if ([self canMoveTileWithXPos:xPos+1 yPos:yPos andDirection:RIGHT]) {
+        return TWORIGHT;
+    }
+    
+    // check if the tile can be dragged right
+    if([self canMoveTileWithXPos:xPos yPos:yPos andDirection:RIGHT]){
+        return RIGHT;
+    }
+    
+    // Check if 3 tiles can be dragged down
+    if([self canMoveTileWithXPos:xPos yPos:yPos+2 andDirection:DOWN]) {
+        return THREEDOWN;
+    }
+    
+    // check if two tiles can be dragged down
+    if ([self canMoveTileWithXPos:xPos yPos:yPos+1 andDirection:DOWN]) {
+        return TWODOWN;
+    }
+    
+    // check if the tile can be dragged down
+    if([self canMoveTileWithXPos:xPos yPos:yPos andDirection:DOWN]){
+        return DOWN;
+    }
+    
+    // Check if 3 tiles can be dragged left
+    if([self canMoveTileWithXPos:xPos-2 yPos:yPos andDirection:LEFT]) {
+        return THREELEFT;
+    }
+    
+    // check if two tiles can be dragged left
+    if ([self canMoveTileWithXPos:xPos-1 yPos:yPos andDirection:LEFT]) {
+        return TWOLEFT;
+    }
+    
+    // check if the tile can be dragged left
+    if([self canMoveTileWithXPos:xPos yPos:yPos andDirection:LEFT]){
+        return LEFT;
+    }
+    
+    return NONE;
+}
+
 #pragma mark - Move Tile
 - (void) moveTileWithXPos:(int)xPos yPos:(int)yPos inDirection:(PossibleMoves)direction {
     [self updateBoardForTileXPos:xPos yPos:yPos andDirection:direction];
@@ -203,6 +269,25 @@
         default:
             break;
     }
+}
+
+#pragma mark - Has Game Ended
+- (BOOL) hasGameEnded {
+    int counter = 0;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            if(i == 3 &&
+               j == 3)
+                counter = -1;
+            
+            if([[[self.board objectAtIndex:i] objectAtIndex:j] intValue] != counter) {
+                return NO;
+            }
+            counter++;
+        }
+    }
+    
+    return YES;
 }
 
 @end
