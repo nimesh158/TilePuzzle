@@ -319,10 +319,12 @@
 		11057DCB14EE00D50083B4C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Steven Mesko (RKPZHZH2E6)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SliderName/SliderPuzzle-Prefix.pch";
 				INFOPLIST_FILE = "SliderName/SliderPuzzle-Info.plist";
 				PRODUCT_NAME = SliderPuzzle;
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6889178A-B32A-45E2-9AED-8FB26C21A836";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;

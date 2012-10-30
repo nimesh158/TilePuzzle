@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
+   LastUpgradeVersion = "0450"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
-               BuildableName = "SliderName.app"
-               BlueprintName = "SliderName"
-               ReferencedContainer = "container:SliderName.xcodeproj">
+               BuildableName = "SliderPuzzle.app"
+               BlueprintName = "SliderPuzzle"
+               ReferencedContainer = "container:SliderPuzzle.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
-            BuildableName = "SliderName.app"
-            BlueprintName = "SliderName"
-            ReferencedContainer = "container:SliderName.xcodeproj">
+            BuildableName = "SliderPuzzle.app"
+            BlueprintName = "SliderPuzzle"
+            ReferencedContainer = "container:SliderPuzzle.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </TestAction>
@@ -44,15 +45,16 @@
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Debug"
+      ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
-            BuildableName = "SliderName.app"
-            BlueprintName = "SliderName"
-            ReferencedContainer = "container:SliderName.xcodeproj">
+            BuildableName = "SliderPuzzle.app"
+            BlueprintName = "SliderPuzzle"
+            ReferencedContainer = "container:SliderPuzzle.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -68,9 +70,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "11057DAB14EE00D50083B4C0"
-            BuildableName = "SliderName.app"
-            BlueprintName = "SliderName"
-            ReferencedContainer = "container:SliderName.xcodeproj">
+            BuildableName = "SliderPuzzle.app"
+            BlueprintName = "SliderPuzzle"
+            ReferencedContainer = "container:SliderPuzzle.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
